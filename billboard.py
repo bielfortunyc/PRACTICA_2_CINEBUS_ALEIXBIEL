@@ -6,7 +6,7 @@ class Film:
     genre: str
     director: str
     actors: list[str]
-    ...
+    ...#a
     
 class Cinema: 
     name: str
