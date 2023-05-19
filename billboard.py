@@ -5,142 +5,208 @@ from bs4 import BeautifulSoup
 import requests
 from typing import Any
 
-@dataclass 
-class Film: 
+
+@dataclass
+class Film:
     title: str
     genre: str
     director: str
     actors: list[str]
-    
-    def __init__(self, title: str, genre: str, director: str, actors: list[str]) -> None:
-        title = title
-        genre = genre
-        director = director
-        actors = actors
-    
-class Cinema: 
+
+    def __init__(
+            self,
+            elements: dict[str, Any]) -> None:
+        self.title = elements['title']
+        self.genre = elements['genre']
+        self.director = elements['directors']
+        self.actors = elements['actors']
+
+    def escriu(self) -> None:
+        print(
+            'PEL LICULA: Titol:',
+            self.title,
+            'Genere:',
+            self.genre,
+            'Director/s:',
+            self.director,
+            'Actors:',
+            self.actors)
+
+class Cinema:
     name: str
     address: str
-    def __init__(self, name, address) -> None:
-        name = name
-        address = address
-    
-class Projection: 
-    film: Film
-    cinema: Cinema
-    time: tuple[int, int]   # hora:minut
-    language: str
-    ...
-    
-class Billboard: 
-    films: list[Film]
-    cinemas: list[Cinema]
-    projections: list[Projection]
+
+    def __init__(self, elements: dict[str, str]) -> None:
+        self.name = elements['name']
+        self.address = elements['city']
+
+    def escriu(self) -> None:
+        print(
+            'CINEMA: Nom:',
+            self.name,
+            'Ciutat:',
+            self.address)
+        
+class Projection:
+    _film: Film
+    _cinema: Cinema
+    _time: tuple[int, int]   # hora:minut
+    #language: str de moment suda perquè no hi és a la info de Sensacine.
+
+    def __init__(self, film: Film, cinema: Cinema,
+                 time: tuple[int, int]) -> None:
+        self._film, self._cinema, self._time = film, cinema, time
+
+    def film(self) -> Film:
+        return self._film
+
+    def cinema(self) -> Cinema:
+        return self._cinema
+
+    def time(self) -> tuple[int, int]:
+        return self._time
+
+    def escriu(self) -> None:
+        print(
+            'PEL LICULA: Titol:',
+            self.film().title,
+            'Genere:',
+            self.film().genre,
+            'Director/s:',
+            self.film().director,
+            'Actors:',
+            self.film().actors)
+        print(
+            'CINEMA: Nom:',
+            self.cinema().name,
+            'Ciutat:',
+            self.cinema().address)
+        print('SESSIO: ', self.time()[0], ':', self.time()[1], sep='')
+
+
+class Billboard:
+    _films: list[Film]
+    _cinemes: list[Cinema]
+    _projections: list[Projection]
+
+    def __init__(
+            self,
+            films: list[Film],
+            cinemes: list[Cinema],
+            projections: list[Projection]) -> None:
+        self._films, self._cinemes, self._projections = films, cinemes, projections
+
+    def films(self) -> list[Film]:
+        return self._films
+
+    def projections(self) -> list[Projection]:
+        return self._projections
+
+    def cinemes(self) -> list[Cinema]:
+        return self._cinemes
 
 def read() -> Billboard:
+
+    webs = ['https://www.sensacine.com/cines/cines-en-72480/', 
+        'https://www.sensacine.com/cines/cines-en-72480/?page=2', 'https://www.sensacine.com/cines/cines-en-72480/?page=3']
+
+    elements : list[Any] = []
+    for i in range(3):
+        contingut = requests.get(webs[i]).content
+        soup = BeautifulSoup(contingut, 'lxml')
+        elements += (soup.find_all('div', class_='item_resa'))  
+
+   
+    cinemes = llista_cinema(elements)
     
-    informacio_webs = web_scraping('https://www.sensacine.com/cines/cines-en-72480/')
-    informacio_webs2 = web_scraping('https://www.sensacine.com/cines/cines-en-72480/?page=2')
-    informacio_webs3 = web_scraping('https://www.sensacine.com/cines/cines-en-72480/?page=3')
-
-    informacio_total = {**informacio_webs, ** informacio_webs2, **informacio_webs3}
-    cinemes = llista_cinemes()
-    films = llista_films()
-
-def web_cinemes(s: str) -> dict[str, dict[str, str]]:
-    """Retorna el fitxer amb cinemes."""
-    cinemes : dict[str, dict[str,str]] = dict()
+    films = llista_films(elements)
+    projections = llista_projeccions(elements)
     
-    contingut_html = requests.get(s).content
-    soup = BeautifulSoup(contingut_html, 'html.parser')
-    elements = soup.find_all(class_='item_resa')
+    return Billboard(films, cinemes, projections)
 
+
+def write() -> None:
+
+    bill = read()
+
+    for i in range(len(bill.projections())):
+        print('PROJECCIO', i)
+        bill.projections()[i].escriu()
+    print(len(bill.films()))
+    for j in range(len(bill.films())):
+        try:
+            print('PELLICULA', j)
+            bill.films()[j].escriu()
+        except: continue
+    print(len(bill.cinemes()))
+    for k in range(len(bill.cinemes())):
+        print('CINEMA', k)
+        bill.cinemes()[k].escriu()
+        
+def llista_cinema(elements: Any) -> list[Cinema]:
+
+    cinema : dict[str, Cinema] = dict()
     for element in elements:
+        
         content = str(element)
         match = re.search(r'data-theater=\'(.*?)\'', content)
         if match:
             theater_data = match.group(1)
             theater_list = json.loads(theater_data)
-            cinemes['name'] = theater_list
-    
-    return cinemes
-    
-def llista_cinemes() -> list[Cinema]:
-    
-    c1 = web_cinemes('https://www.sensacine.com/cines/cines-en-72480/')
-    c2 = web_cinemes('https://www.sensacine.com/cines/cines-en-72480/?page=2')
-    c3 = web_cinemes('https://www.sensacine.com/cines/cines-en-72480/?page=3')
+            
+            cinema[theater_list['name']] = Cinema(theater_list)
+            
+            
+    return list(cinema.values())
 
-    cinemes = {**c1, **c2, **c3}
-    
-    llista : list[Cinema] = list()
-    for element in cinemes.values():
-        cinema = Cinema(element['name'], element['city'])
-        llista.append(cinema)
-    
-    return llista
+def llista_films(elements: Any) -> list[Film]:
 
-def web_movies(s: str) -> dict[str, dict[str, Any]]:
-    """Retorna el fitxer amb cinemes."""
-    movies : dict[str, dict[str, Any]] = dict()
-    
-    contingut_html = requests.get(s).content
-    soup = BeautifulSoup(contingut_html, 'html.parser')
-    elements = soup.find_all(class_='item_resa')
-
+    films : dict[str, Film] = dict()
     for element in elements:
         content = str(element)
-        match = re.search(r'data-movies=\'(.*?)\'', content)
+        match = re.search(r'data-movie=\'(.*?)\'', content)
         if match:
-            theater_data = match.group(1)
-            theater_list = json.loads(theater_data)
-            movies['name'] = theater_list
-    
-    return movies
-    
-def llista_films() -> list[Film]:
-    
-    c1 = web_movies('https://www.sensacine.com/cines/cines-en-72480/')
-    c2 = web_movies('https://www.sensacine.com/cines/cines-en-72480/?page=2')
-    c3 = web_movies('https://www.sensacine.com/cines/cines-en-72480/?page=3')
+            movie_data = match.group(1)
+            movie_list = json.loads(movie_data)
+            
+            films[movie_list['id']] = Film(movie_list)
+            
+            
+    return list(films.values())
 
-    movies = {**c1, **c2, **c3}
-    
-    llista : list[Film] = list()
-    for element in movies.values():
-        movie = Film(element['title'], element['genre'], element['directors'], element['actors'])
-        llista.append(movie))
-    
-    return llista
-    
-def web_scraping(s: str) -> dict[str, list[list[Any]]]:
+
+def llista_projeccions(elements: Any) -> list[Projection]:
     """Retorna un diccionari de cada pel·licula i temps, película, cinema."""
-    contingut_html = requests.get(s).content
-    soup = BeautifulSoup(contingut_html, 'html.parser')
-    elements = soup.find_all(class_='item_resa')
 
-    result : dict[str, list[list[Any]]] = {}
-
+    projections : list[Projection] = []
+    
     for element in elements:
         content = str(element)
-
-        # Utilitza expressió regular per trobar els valors de l'atribut data-times
+        # Utilitza expressió regular per trobar els valors de l'atribut
+        # data-times
         match = re.search(r'data-times=\'(.*?)\'', content)
         if match:
             times_data = match.group(1)
             times_list = json.loads(times_data)
-
+                       
+            time = int(times_list[0][0] + times_list[0][1]), int(times_list[0][3] + times_list[0][4])
+            
         match2 = re.search(r'data-theater=\'(.*?)\'', content)
         if match2:
             theater_data = match2.group(1)
             theater_list = json.loads(theater_data)
-
+            cinema = Cinema(theater_list)
+            
         match3 = re.search(r'data-movie=\'(.*?)\'', content)
         if match3:
             movie_data = match3.group(1)
             movie_list = json.loads(movie_data)
-    
-        result[movie_list['title']] = [movie_list, theater_list, times_list]
-    
-    return result
+            film = Film(movie_list)
 
+        if match and match2 and match3:
+            projections.append(Projection(film, cinema, time))
+
+    return projections
+
+
+write()
