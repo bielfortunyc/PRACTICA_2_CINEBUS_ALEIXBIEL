@@ -1,26 +1,12 @@
-from typing import TypeAlias
 from dataclasses import dataclass
 import json
 import networkx as nx
 import urllib.request
-import staticmaps
+import staticmaps as sm
 import matplotlib.pyplot as plt
 
-BusesGraph : TypeAlias = nx.Graph
 
-@dataclass
-class Stop:
-    id: str
-    name: str
-    lat: float
-    lon: float
-    type: str
 
-@dataclass
-class Route:
-    start_stop: str
-    end_stop: str
-    bus_line: str
     
 def get_buses_graph() -> nx.Graph:
     # Llegir les dades JSON
@@ -31,52 +17,61 @@ def get_buses_graph() -> nx.Graph:
     # Crear el graf de busos
     graph = nx.Graph()
 
-    # Afegir nodes al graf
-    for stop in data['parades']:
-        stop_id = stop['idParada']
-        stop_name = stop['nomParada']
-        stop_lat = stop['coordenades']['lat']
-        stop_lon = stop['coordenades']['lon']
-        stop_type = stop['tipusParada']
-        stop_obj = Stop(id=stop_id, name=stop_name, lat=stop_lat, lon=stop_lon, type=stop_type)
-        graph.add_node(stop_id, **stop_obj.__dict__)
-    
-    for line in data['linies']:
-        stops = line['parades']
-        for i in range(len(stops) - 1):
-            start_stop_id = stops[i]['idParada']
-            end_stop_id = stops[i + 1]['idParada']
-            bus_line = line['codiLinia']
-            route_obj = Route(start_stop=start_stop_id, end_stop=end_stop_id, bus_line=bus_line)
-            graph.add_edge(start_stop_id, end_stop_id, **route_obj.__dict__)
-            
+   # Processar les parades i afegir-les com a nodes amb els seus atributs corresponents
+    parades = data['ObtenirDadesAMBResult']['Linies']['Linia'][0]['Parades']['Parada']
+    for parada in parades:
+        node_id = parada['CodAMB']
+        node_nom = parada['Nom']
+        coordenades = (parada['UTM_X'], parada['UTM_Y'])
+
+        # Afegir el node amb els atributs de nom i coordenades
+        graph.add_node(node_id, nom=node_nom, coordenades=coordenades)
+
+    # Processar les arestes i afegir-les com a arestes amb els seus atributs corresponents
+    for linia in data['ObtenirDadesAMBResult']['Linies']['Linia']:
+        parades_linia = linia['Parades']['Parada']
+        for i in range(len(parades_linia) - 1):
+            node_origen = parades_linia[i]['CodAMB']
+            node_desti = parades_linia[i + 1]['CodAMB']
+            linia_bus = linia['Nom']
+
+            # Afegir l'aresta amb l'atribut de la línia de bus
+            graph.add_edge(node_origen, node_desti, linia=linia_bus)
+
     return graph
 
-def show(g: BusesGraph) -> None:
-    # Crear gràfic de NetworkX a partir del graf de busos
-    nx_graph = nx.Graph(g)
-
-    # Dibuixar el gràfic de NetworkX
-    pos = {node_id: (g.nodes[node_id]['lon'], g.nodes[node_id]['lat']) for node_id in g.nodes}
-    nx.draw(nx_graph, pos, with_labels=True)
+def show(g: nx.Graph) -> None:
+    nx.draw(g, with_labels=False,node_size= 5)
     plt.show()
+def plot(g: nx.Graph, nom_fitxer: str) -> None:
+# Crear un objecte StaticMap amb el mapa de fons de la ciutat
+    city_map = sm.StaticMap(800, 800)
+    city_map.add_image_layer(sm.ImageLayer(nom_fitxer))
 
-def plot(g: BusesGraph, nom_fitxer: str) -> None:
-    # Crear mapa amb les parades dels autobusos
-    mapa = staticmaps.StaticMap(800, 600)
-    for node_id in g.nodes:
-        lon, lat = g.nodes[node_id]['lon'], g.nodes[node_id]['lat']
-        pos = staticmaps.create_latlng(lat, lon)
-        marker = staticmaps.Marker(pos)
-        mapa.add_marker(marker)
+    # Afegir les parades com a marcadors al mapa
+    for node in g.nodes:
+        lat, lon = g.nodes[node]['coordenades']
+        marker = sm.Marker(sm.create_latlng(lat, lon))
+        city_map.add_marker(marker)
 
-    # Afegir el mapa de la ciutat de fons
-    ciutat = staticmaps.StaticMap(800, 600)
-    ciutat.add_image(staticmaps.Image(nom_fitxer), 0, 0, 800, 600)
+    # Afegir els trajectes com a línies al mapa
+    for edge in g.edges:
+        node1, node2 = edge
+        lat1, lon1 = g.nodes[node1]['coordenades']
+        lat2, lon2 = g.nodes[node2]['coordenades']
+        line = sm.Line([sm.create_latlng(lat1, lon1), sm.create_latlng(lat2, lon2)], 'blue', 3)
+        city_map.add_line(line)
 
-    # Unir els mapes
-    mapa.render()
-    ciutat.add_image(mapa.image, 0, 0, 800, 600)
+    # Generar el mapa amb les parades i trajectes
+    image = city_map.render()
 
     # Desar el mapa com una imatge
-    ciutat.save('mapa.png')
+    image.save(nom_fitxer)
+
+def main()-> None:
+	g = get_buses_graph()
+	show(g)
+	plot(g,"Mapa-turistico-de-Barcelona.png")
+    
+if __name__=='__main__':
+    main()
