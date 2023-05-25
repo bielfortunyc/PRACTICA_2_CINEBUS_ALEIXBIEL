@@ -14,7 +14,7 @@ class Bus:
     nom: str
     x: float
     y: float
-    def __init__(self,id:str,nom:str,x:float,y:float)->None:
+    def __init__(self,id:int,nom:str,x:float,y:float)->None:
         self.id = id
         self.nom = nom
         self.x = x
@@ -34,25 +34,26 @@ def get_buses_graph() -> nx.Graph:
     for i in range(len(data['ObtenirDadesAMBResult']['Linies']['Linia'])):
         parades = data['ObtenirDadesAMBResult']['Linies']['Linia'][i]['Parades']['Parada']
         for parada in parades:
-            node_id = parada['CodAMB']
-            node_nom = parada['Nom']
-            node_x, node_y = parada['UTM_X'], parada['UTM_Y']
+            if parada['Municipi'] == 'Barcelona':
+                node_id = parada['CodAMB']
+                node_nom = parada['Nom']
+                node_x, node_y = parada['UTM_X'], parada['UTM_Y']
 
-            # Afegir el node amb els atributs de nom i coordenades
-            bus = Bus(id=node_id,nom=node_nom,x=node_x,y=node_y)
-            graph.add_node(bus.id, pos=(node_x,node_y))
+                # Afegir el node amb els atributs de nom i coordenades
+                bus = Bus(id=node_id,nom=node_nom,x=node_x,y=node_y)
+                graph.add_node(bus.id, pos=(node_x,node_y))
 
     # Processar les arestes i afegir-les com a arestes amb els seus atributs corresponents
     for linia in data['ObtenirDadesAMBResult']['Linies']['Linia']:
         parades_linia = linia['Parades']['Parada']
         
-        parades_arista = [parada['CodAMB'] for parada in parades_linia]
-        
+                
         
         for i in range(len(parades_linia) - 1):
-            node_origen = parades_linia[i]['CodAMB']
-            node_desti = parades_linia[i + 1]['CodAMB']
-            linia_bus = linia['Nom']
+            if parades_linia[i]['Municipi'] == 'Barcelona' and parades_linia[i+1]['Municipi'] == 'Barcelona':
+                node_origen = parades_linia[i]['CodAMB']
+                node_desti = parades_linia[i + 1]['CodAMB']
+                linia_bus = linia['Nom']
 
             # Afegir l'aresta amb l'atribut de la línia de bus
             graph.add_edge(node_origen, node_desti, linia=linia_bus)
@@ -62,7 +63,7 @@ def get_buses_graph() -> nx.Graph:
 def show(g: BusesGraph) -> None:
     
     posicions = nx.get_node_attributes(g, 'pos')
-    nx.draw(g, pos=posicions, with_labels=True,font_size=3,node_size= 5)
+    nx.draw(g, pos=posicions, with_labels=False,font_size=5,node_size= 5)
     plt.show()
     
     
@@ -93,7 +94,7 @@ def plot(g: nx.Graph, nom_fitxer: str) -> None:
 
 def main()-> None:
     g = get_buses_graph()
-    show(g)
+    #show(g)
     plot(g,"mapa_barcelona.png")
     
 if __name__=='__main__':
