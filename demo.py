@@ -2,7 +2,6 @@ import yogi
 from city import *
 from billboard import *
 from rich.console import Console
-from rich.markdown import Markdown
 from rich.table import Table
 from rich.text import Text
 
@@ -12,7 +11,8 @@ def main() -> None:
     console.print("Aleix Albaiges i Gabriel Fortuny", style="bold")
     
     cartellera = read()
-    
+    busos = get_buses_graph()
+    ciutat = show()
     instruccions = [
         "1. Mostra el contingut de la cartellera",
     "2. Cerca a la cartellera",
@@ -26,17 +26,10 @@ def main() -> None:
         for inst in instruccions: console.print(inst)
         console.print("Selecciona una opció: ", end='')
         opcio = yogi.read(int)
-        
+        # mostrar el contingut de la cartellera.
         if opcio == 1:
-            taula = Table(title="Cartellera de Barcelona")
-            taula.add_column("Pel·lícula")
-            taula.add_column("Cinema")
-            taula.add_column("Hora")
-            
-            for projeccio in cartellera.projections():
-                taula.add_row(projeccio.film().title, projeccio.cinema().name, f"{projeccio.time()[0]:02d}:{projeccio.time()[1]:02d}")
-                
-            console.print(taula)
+            escriu_cartellera(cartellera.projections())                
+        # cercar a la cartellera.   
         elif opcio == 2:
             cerques = ["1. Pel·lícula", "2. Cinema", "3. Horari"]
             for cerca in cerques: console.print(cerca)
@@ -50,15 +43,8 @@ def main() -> None:
                     if intent.title == pel:
                         trobada = True
                         sessions = {x for x in cartellera.projections() if pel == x.film().title}
-                        taula = Table(title="Cartellera de Barcelona")
-                        taula.add_column("Pel·lícula")
-                        taula.add_column("Cinema")
-                        taula.add_column("Hora")
+                        escriu_cartellera(list(sessions))
                         
-                        for projeccio in sessions:
-                            taula.add_row(projeccio.film().title, projeccio.cinema().name, f"{projeccio.time()[0]:02d}:{projeccio.time()[1]:02d}")
-                           
-                        console.print(taula)
                 if not trobada: 
                     text = Text.assemble(("Vaja! ", "red"), "La pel·lícula que has introduit no es troba a la cartellera. ",  ("Assegura't d'escriure una que hi sigui o fixa't en si l'has escrit bé.", "cyan"))
                     console.print(text)
@@ -70,15 +56,8 @@ def main() -> None:
                     if intent.name == cine:
                         trobada = True
                         sessions = {x for x in cartellera.projections() if cine == x.cinema().name}
-                        taula = Table(title="Cartellera de Barcelona")
-                        taula.add_column("Pel·lícula")
-                        taula.add_column("Cinema")
-                        taula.add_column("Hora")
+                        escriu_cartellera(list(sessions))
                         
-                        for projeccio in sessions:
-                            taula.add_row(projeccio.film().title, projeccio.cinema().name, f"{projeccio.time()[0]:02d}:{projeccio.time()[1]:02d}")
-                           
-                        console.print(taula)
                 if not trobada: 
                     text = Text.assemble(("Vaja! ", "red"), "El cinema que has introduit no es troba a la cartellera. ",  ("Assegura't d'escriure'n un que hi sigui o fixa't en si l'has escrit bé.", "cyan"))
                     console.print(text)
@@ -90,29 +69,57 @@ def main() -> None:
                     if intent.time()[0] == pel:
                         trobada = True
                         sessions = {x for x in cartellera.projections() if pel == x.time()[0]}
-                        taula = Table(title="Cartellera de Barcelona")
-                        taula.add_column("Pel·lícula")
-                        taula.add_column("Cinema")
-                        taula.add_column("Hora")
+                        escriu_cartellera(list(sessions))
                         
-                        for projeccio in sessions:
-                            taula.add_row(projeccio.film().title, projeccio.cinema().name, f"{projeccio.time()[0]:02d}:{projeccio.time()[1]:02d}")
-                            
-                        console.print(taula)
                 if not trobada: 
                     text = Text.assemble(("Vaja! ", "red"), "No hi ha cap pel·lícula programada per aquesta hora o no l'has escrit correctament.")
                     console.print(text)
+            else: console.print("Opció no vàlida", style="purple4")
+        # mostrar el graf de busos.
+        elif opcio == 3:
+            show(busos)
+        # mostrar el graf de ciutat.
+        elif opcio == 4:
+            show()
+        # # mostrar el camí per anar a veure una pel·lícula desitjada des d'un lloc donat en un moment donat. De totes les projeccions possibles cal mostrar el camí per arribar a la que comenci abans (i que s'hi pugui arribar a temps a peu i en bús).
+        elif opcio == 5:
+            console.print("Quina Pel·lícula vols veure? Si encara no ho saps consulta primer la cartellera.")
+            pel = input()
+            trobada = False
+            for intent in cartellera.films():
+                if intent.title == pel:
+                    trobada = True
+                    sessions = {x for x in cartellera.projections() if pel == x.film().title}
+                    escriu_cartellera(list(sessions))
+                    
+            if not trobada: 
+                text = Text.assemble(("Vaja! ", "red"), "La pel·lícula que has introduit no es troba a la cartellera. ",  ("Assegura't d'escriure una que hi sigui o fixa't en si l'has escrit bé.", "cyan"))
+                console.print(text)
+            
+            # A partir d'aquí, calcula el cinema que estigui més a prop d'entre tots els que la fan en el temps possible per arribar-hi.
+                        
+        else: console.print("Opció no vàlida", style="purple4")
         # crear la cartellera.
-    # mostrar el contingut de la cartellera.
-    # cercar a la cartellera.
+    
+    
     # crear el graf de busos.
-    # mostrar el graf de busos.
+    
     # crear el graf de ciutat.
-    # mostrar el graf de ciutat.
-    # mostrar el camí per anar a veure una pel·lícula desitjada des d'un lloc donat en un moment donat. De totes les projeccions possibles cal mostrar el camí per arribar a la que comenci abans (i que s'hi pugui arribar a temps a peu i en bús).
+    #
+    
 
 
+def escriu_cartellera(projeccions: list[Projection]) -> None:
+    console = Console()
+    taula = Table(title="Cartellera de Barcelona")
+    taula.add_column("Pel·lícula")
+    taula.add_column("Cinema")
+    taula.add_column("Hora")
+    
+    for projeccio in projeccions:
+        taula.add_row(projeccio.film().title, projeccio.cinema().name, f"{projeccio.time()[0]:02d}:{projeccio.time()[1]:02d}")
 
+    console.print(taula)
 
 if __name__ == '__main__':
     main()
