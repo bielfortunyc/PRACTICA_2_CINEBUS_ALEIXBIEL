@@ -59,8 +59,14 @@ def build_city_graph(g1: OsmnxGraph, g2: BusesGraph) -> CityGraph:
     
    
 
-def find_path(ox_g: OsmnxGraph, g: CityGraph, src: Coord, dst: Coord) -> Path: ...
+def find_path(ox_g: OsmnxGraph, g: CityGraph, src: Coord, dst: Coord) -> Path:
+    src_node = ox.distance.nearest_nodes(ox_g, src[0], src[1])
+    dst_node = ox.distance.nearest_nodes(ox_g, dst[0], dst[1])
 
+    shortest_path = nx.shortest_path(g, src_node, dst_node)
+    shortest_edges = [(shortest_path[i], shortest_path[i+1]) for i in range(len(shortest_path)-1)]
+    
+    return Path(shortest_path, shortest_edges)
 
 def show(g: CityGraph) -> None:
     # mostra g de forma interactiva en una finestra
