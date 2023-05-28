@@ -29,17 +29,37 @@ def load_osmnx_graph(filename: str) -> OsmnxGraph:
     return graf
 
 def build_city_graph(g1: OsmnxGraph, g2: BusesGraph) -> CityGraph:
-    # retorna un graf fusió de g1 i g2
+     # retorna un graf fusió de g1 i g2
+    city_graph = nx.Graph()
+    for u, nbrsdict in g1.adjacency():      
+        city_graph.add_node(u, info = 'Cruilla')
+        # for each adjacent node v and its (u, v) edges' information ...
+        for v, edgesdict in nbrsdict.items():
+            city_graph.add_node(v, info = 'Cruilla')
+            eattr = edgesdict[0]  
+            city_graph.add_edge(u,v, **eattr,info = 'Carrer')
+            # osmnx graphs are multigraphs, but we will just consider their first edge
+             # eattr contains the attributes of the first edge
+            # we remove geometry information from eattr because we don't need it and takes a lot of space        
+    for node_attrs in g2.nodes.values():
+        parada = Parada(node_attrs['parada'].id,node_attrs['parada'].pos)
+        city_graph.add_node(parada.id,parada, info = Bus)
+    for edge_attrs in g2.edges.values():        
+        linia = edge_attrs['linia']  
+        city_graph.add_edge(linia.node_origen.pos, linia.node_desti.pos,info = 'Bus')
+    
+    for node_attrs in g2.nodes.values():
+        parada = Parada(node_attrs['parada'].id,node_attrs['parada'].pos)
+        cruilla_propera = ox.get_nearest_node(g1, parada.pos)
+        city_graph.add_edge(parada, cruilla_propera, info =' Carrer')
+        
+    return city_graph
     
     
     
-    city = nx.Graph()
-    g1_s = nx.Graph(g1)
-    city : CityGraph = nx.compose(g1_s, g2)
-    
-    return city
+   
 
-#def find_path(ox_g: OsmnxGraph, g: CityGraph, src: Coord, dst: Coord) -> Path: ...
+def find_path(ox_g: OsmnxGraph, g: CityGraph, src: Coord, dst: Coord) -> Path: ...
 
 
 def show(g: CityGraph) -> None:
@@ -52,7 +72,8 @@ def show(g: CityGraph) -> None:
     
 def plot(g: CityGraph, filename: str) -> None: ...
    # desa g com una imatge amb el mapa de la cuitat de fons en l'arxiu filename
-#def plot_path(g: CityGraph, p: Path, filename: str, ...) -> None: ...
+
+def plot_path(g: CityGraph, p: Path, filename: str, ...) -> None: ...
     # mostra el camí p en l'arxiu filename
     
 def main() -> None:
