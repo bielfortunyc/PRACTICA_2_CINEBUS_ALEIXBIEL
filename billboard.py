@@ -50,6 +50,7 @@ class Cinema:
             'Coordenades:',
             self.coordenades[0], self.coordenades[1])
         
+        
 class Projection:
     _film: Film
     _cinema: Cinema
@@ -69,22 +70,19 @@ class Projection:
     def time(self) -> tuple[int, int]:
         return self._time
 
+    #def __eq__(self, p: 'Projection') -> bool:
+        
+    #    return self.film() == p.film() and self.cinema() == p.cinema() and self.time() == p.time()
+
     def escriu(self) -> None:
         print(
-            'PEL LICULA: Titol:',
+            
             self.film().title,
-            'Genere:',
-            self.film().genre,
-            'Director/s:',
-            self.film().director,
-            'Actors:',
-            self.film().actors)
-        print(
-            'CINEMA: Nom:',
+    
+            
             self.cinema().name,
-            'Ciutat:',
-            self.cinema().address)
-        print('SESSIO: ', self.time()[0], ':', self.time()[1], sep='')
+        
+            self.time()[0], ':', self.time()[1],)
 
 
 class Billboard:
@@ -107,6 +105,32 @@ class Billboard:
 
     def cinemes(self) -> list[Cinema]:
         return self._cinemes
+    
+    def troba_mot(self, m: str) -> list[Projection]:
+        
+        matching_mots = [element for element in self.projections() if m in element.film().title]
+        matching_mots += [element for element in self.projections() if m in element.cinema().name]
+        return matching_mots
+    
+    def troba_actor(self, m: str) -> list[Projection]:
+        
+        matching_mots = [element for element in self.projections() if m in element.film().actors]
+        return matching_mots
+
+    def troba_director(self, m: str) -> list[Projection]:
+        
+        matching_mots = [element for element in self.projections() if m in element.film().director]
+        return matching_mots
+    
+    def troba_genere(self, m: str) -> list[Projection]:
+        
+        matching_mots = [element for element in self.projections() if m in element.film().genre]
+        return matching_mots
+        
+def sort_hora(projections: list[Projection]) -> None:
+    sorted(projections, key=lambda x: x.time()[0])
+
+
 
 def read() -> Billboard:
 
@@ -192,9 +216,8 @@ def cinemes() -> dict[str, Cinema]:
     
     return cinemes
 
-def write() -> None:
+def write(bill: Billboard) -> None:
 
-    bill = read()
 
     """for i in range(len(bill.projections())):
         print('PROJECCIO', i)
@@ -249,19 +272,13 @@ def llista_films(elements: Any) -> list[Film]:
 def llista_projeccions(elements: Any) -> list[Projection]:
     """Retorna un diccionari de cada pel·licula i temps, película, cinema."""
 
-    projections : list[Projection] = []
-    
+    projections : list[Projection] = list()
+    repetits : dict[str, set[str]] = dict()
     for element in elements:
+        
         content = str(element)
         # Utilitza expressió regular per trobar els valors de l'atribut
         # data-times
-        match = re.search(r'data-times=\'(.*?)\'', content)
-        if match:
-            times_data = match.group(1)
-            times_list = json.loads(times_data)
-                       
-            time = int(times_list[0][0] + times_list[0][1]), int(times_list[0][3] + times_list[0][4])
-            
         match2 = re.search(r'data-theater=\'(.*?)\'', content)
         if match2:
             theater_data = match2.group(1)
@@ -274,10 +291,28 @@ def llista_projeccions(elements: Any) -> list[Projection]:
             movie_list = json.loads(movie_data)
             film = Film(movie_list)
 
-        if match and match2 and match3:
-            projections.append(Projection(film, cinema, time))
+        ul_element = element.find('ul', class_='list_hours')
+        em_elements = ul_element.find_all('em')
+        data_times = [em.get('data-times') for em in em_elements]
+        for dt in data_times:            
+            time = int(dt[2] + dt[3]), int(dt[5] + dt[6])
+            if match2 and match3:
+                if cinema.name in repetits:
+                    if film.title in repetits[cinema.name]:
+                        #if time in repetits[cinema.name][film.title]:
+                            break
+                        #else:
+                            #repetits[cinema.name][film.title].add(time)      
+                else:
+                    repetits[cinema.name] = set()
+                projections.append(Projection(film, cinema, time))
+        repetits[cinema.name].add(film.title)
+    
+    return list(projections)
 
-    return projections
 
-
-write()
+ball = read()
+"""
+for projection in ball.projections():
+    projection.escriu()
+"""
