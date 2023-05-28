@@ -9,7 +9,7 @@ from rich.text import Text
 def main() -> None:
     # mostrar el nom dels autors del projecte.
     console = Console()
-    console.print("Aleix Albaiges i Gabriel Fortuny", style="bold")
+    console.print("Aleix Albaiges i Gabriel Fortuny", style="bold", highlight=True)
 
     cartellera = read()
     busos = get_buses_graph()
@@ -33,7 +33,7 @@ def main() -> None:
             escriu_cartellera(cartellera.projections())
         # cercar a la cartellera.
         elif opcio == 2:
-            cerques = ["1. Pel·lícula", "2. Cinema", "3. Horari", "4. Combina"]
+            cerques = ["1. Pel·lícula", "2. Cinema", "3. Horari", "4. Combina", "5. Cerca per mot", "6. Genere", "7. Actor", "8. Director"]
             for cerca in cerques:
                 console.print(cerca)
             console.print("Què vols cercar? ", end='')
@@ -46,7 +46,9 @@ def main() -> None:
                     console.print(text)
 
                 else:
-                    escriu_cartellera(list(sessions))
+                    sessions = list(sessions)
+                    sort_hora(sessions)
+                    escriu_cartellera(sessions)
 
             elif cerca == 2:
                 sessions = cerca_cinema(cartellera)
@@ -55,8 +57,10 @@ def main() -> None:
                         "Assegura't d'escriure'n un que hi sigui o fixa't en si l'has escrit bé.", "cyan"))
                     console.print(text)
                 else:
-                    escriu_cartellera(list(sessions))
-
+                    sessions = list(sessions)
+                    sort_hora(sessions)
+                    escriu_cartellera(sessions)
+                    
             elif cerca == 3:
                 sessions = cerca_horari(cartellera)
                 if len(sessions) == 0:
@@ -64,14 +68,16 @@ def main() -> None:
                         ("Vaja! ", "red"), "No hi ha cap pel·lícula programada per aquesta hora o no l'has escrit correctament.")
                     console.print(text)
                 else:
-                    escriu_cartellera(list(sessions))
-
+                    sessions = list(sessions)
+                    sort_hora(sessions)
+                    escriu_cartellera(sessions)
+                    
             elif cerca == 4:
                 combos = ["1. Pel·lícula", "2. Cinema", "3. Horari"]
                 for combo in combos:
                     console.print(combo)
                 console.print(
-                    "Escull els dos paràmetres amb els que vols cercar.", end='')
+                    "Escull els dos paràmetres amb els que vols cercar. ", end='')
                 x, y = yogi.read(int), yogi.read(int)
 
                 if x == 1:
@@ -81,14 +87,18 @@ def main() -> None:
                         cine = input()
                         combinacio = {
                             x for x in sessions if x.cinema().name == cine}
-                        escriu_cartellera(list(combinacio))
+                        combinacio = list(combinacio)
+                        sort_hora(combinacio)
+                        escriu_cartellera(combinacio)
                     elif y == 3:
                         console.print(
                             "A quina Hora vols anar al cine? Escriu l'hora en punt. ", end='')
                         pel = yogi.read(int)
                         combinacio = {x for x in sessions if x.time()[
                             0] == pel}
-                        escriu_cartellera(list(combinacio))
+                        combinacio = list(combinacio)
+                        sort_hora(combinacio)
+                        escriu_cartellera(combinacio)   
                     else:
                         console.print("Opció no vàlida", style="purple4")
 
@@ -99,14 +109,18 @@ def main() -> None:
                         pel = input()
                         combinacio = {
                             x for x in sessions if x.film().title == pel}
-                        escriu_cartellera(list(combinacio))
+                        combinacio = list(combinacio)
+                        sort_hora(combinacio)
+                        escriu_cartellera(combinacio)
                     elif y == 3:
                         console.print(
                             "A quina Hora vols anar al cine? Escriu l'hora en punt. ", end='')
                         pel = yogi.read(int)
                         combinacio = {x for x in sessions if x.time()[
                             0] == pel}
-                        escriu_cartellera(list(combinacio))
+                        combinacio = list(combinacio)
+                        sort_hora(combinacio)
+                        escriu_cartellera(combinacio)
                     else:
                         console.print("Opció no vàlida", style="purple4")
                 elif x == 3:
@@ -116,17 +130,47 @@ def main() -> None:
                         pel = input()
                         combinacio = {
                             x for x in sessions if x.film().title == pel}
-                        escriu_cartellera(list(combinacio))
+                        combinacio = list(combinacio)
+                        sort_hora(combinacio)
+                        escriu_cartellera(combinacio)
                     elif y == 2:
                         console.print("A quin Cinema vols anar? ", end='')
                         cine = input()
                         combinacio = {
                             x for x in sessions if x.cinema().name == cine}
-                        escriu_cartellera(list(combinacio))
+                        combinacio = list(combinacio)
+                        sort_hora(combinacio)
+                        escriu_cartellera(combinacio)
                     else:
                         console.print("Opció no vàlida", style="purple4")
                 else:
                     console.print("Opció no vàlida", style="purple4")
+            elif cerca == 5:
+                console.print("Quin mot vols cercar? ", end='')
+                mot = input()
+                mots = cartellera.troba_mot(mot)
+                sort_hora(mots)
+                escriu_cartellera(mots)
+            elif cerca == 6:
+                console.print("Quin gènere vols cercar? Escrit en castellà.", end='')
+                mot = input()
+                mots = cartellera.troba_genere(mot)
+                sort_hora(mots)
+                escriu_cartellera(mots)
+            elif cerca == 7:
+                console.print("Quin actor vols cercar? ", end='')
+                mot = input()
+                mots = cartellera.troba_actor(mot)
+                sort_hora(mots)
+                escriu_cartellera(mots)
+            elif cerca == 8:
+                console.print("Quin director vols cercar? ", end='')
+                mot = input()
+                mots = cartellera.troba_director(mot)
+                sort_hora(mots)
+                escriu_cartellera(mots)
+                    
+            
             else:
                 console.print("Opció no vàlida", style="purple4")
         # mostrar el graf de busos.
@@ -209,17 +253,9 @@ def escriu_cartellera(projeccions: list[Projection]) -> None:
     taula.add_column("Pel·lícula")
     taula.add_column("Cinema")
     taula.add_column("Hora")
-    repetits: dict[str, dict[str, set[tuple[int, int]]]] = dict()
     for projeccio in projeccions:
-        try:
-            if projeccio.time() in repetits[projeccio.film().title][projeccio.cinema().name]:
-                continue
-        except KeyError:
-            taula.add_row(projeccio.film().title, projeccio.cinema(
-            ).name, f"{projeccio.time()[0]:02d}:{projeccio.time()[1]:02d}")
-            repetits[projeccio.film().title] = {projeccio.cinema().name: set()}
-            repetits[projeccio.film().title][projeccio.cinema().name].add(
-                projeccio.time())
+        taula.add_row(projeccio.film().title, projeccio.cinema(
+        ).name, f"{projeccio.time()[0]:02d}:{projeccio.time()[1]:02d}")
     console.print(taula)
 
 
