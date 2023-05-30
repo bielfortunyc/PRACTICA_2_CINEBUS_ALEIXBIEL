@@ -9,7 +9,12 @@ from busesactual import *
 CityGraph : TypeAlias = nx.Graph
 OsmnxGraph : TypeAlias = nx.MultiDiGraph
 
+@dataclass
+class Path:
+    nodes: list[Cruilla]
+    linies: list[Carrer]        
 
+    
 def get_osmnx_graph() -> OsmnxGraph:
     filename = 'graf_barcelona'
     if os.path.exists(filename):
