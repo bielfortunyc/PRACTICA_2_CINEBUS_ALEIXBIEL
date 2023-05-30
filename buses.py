@@ -6,7 +6,7 @@ import urllib.request
 import staticmap
 import os
 import matplotlib.pyplot as plt
-
+from PIL import Image
 BusesGraph : TypeAlias = nx.Graph
 Coord: TypeAlias = tuple[float,float]
 
@@ -22,10 +22,12 @@ class Bus:
     node_origen: Parada
     node_desti: Parada
     distancia: float
-    def __init__(self, node_origen: Parada, node_desti: Parada, distancia:float) -> None:
+    info: str
+    def __init__(self, node_origen: Parada, node_desti: Parada, distancia:float, info: str) -> None:
         self.node_origen = node_origen
         self.node_desti = node_desti
         self.distancia = distancia
+        self.info = info
         
         
 def distance(pos1:tuple[float,float], pos2:tuple[float,float]) -> float:
@@ -53,7 +55,7 @@ def get_buses_graph() -> nx.Graph:
 
                 # Afegir el node amb els atributs de nom i coordenades
                 parada = Parada(id=node_id, pos = node_pos)
-                graph.add_node(parada.id, pos=node_pos, parada = parada)
+                graph.add_node(parada.id, pos=node_pos, node = parada)
 
     # Processar les arestes i afegir-les com a arestes amb els seus atributs corresponents
     for linia in data['ObtenirDadesAMBResult']['Linies']['Linia']:
@@ -69,15 +71,16 @@ def get_buses_graph() -> nx.Graph:
                 node_desti_id = dic_node_desti['CodAMB']
                 node_origen_pos = (dic_node_origen['UTM_X'], dic_node_origen['UTM_Y'])
                 node_desti_pos = (dic_node_desti['UTM_X'],dic_node_desti['UTM_Y'])
-                
+                    
                 node_origen = Parada(id = node_origen_id, pos = node_origen_pos)
                 node_desti = Parada(id = node_desti_id,pos = node_desti_pos)
-            
+                
             # Afegir l'aresta amb l'atribut de la línia de bus
             distancia = distance(node_origen.pos,node_desti.pos)
-            edge = Bus(node_origen, node_desti, distancia)
-            graph.add_edge(node_origen_id, node_desti_id, linia = edge, length = distancia)   
-
+            edge = Bus(node_origen, node_desti, distancia, 'bus')
+            if node_origen_id != node_desti_id:
+                graph.add_edge(node_origen_id, node_desti_id, aresta = edge, length = distancia)   
+    
     return graph
 
 def show(g: BusesGraph) -> None:
@@ -91,18 +94,17 @@ def show(g: BusesGraph) -> None:
     
 def plot(g: nx.Graph, nom_fitxer: str) -> None:
  # Crear un objecte StaticMap amb el mapa de fons de la ciutat
-    city_map = staticmap.StaticMap(800, 800, url_template = nom_fitxer)
-    
+    city_map = staticmap.StaticMap(1000, 1000, url_template='https://a.tile.openstreetmap.org/{lat}/{lon}.png'.format(lat=41.3888, lon=2.159))
 
     # Afegir les parades com a marcadors al mapa
     for node_attrs in g.nodes.values():        
-        parada = node_attrs['parada']        
+        parada = node_attrs['node']        
         city_map.add_marker(staticmap.CircleMarker(parada.pos, "red", 10))
     
     
     for edge_attrs in g.edges.values():        
-        linia = edge_attrs['linia']        
-        line = staticmap.Line(linia.node_origen.pos, linia.node_desti.pos, "blue", 5)
+        linia = edge_attrs['aresta']        
+        line = staticmap.Line((linia.node_origen.pos, linia.node_desti.pos), "blue", 5)
         city_map.add_line(line)
     
     # Generar el mapa amb les parades i trajectes i desar el mapa com una imatge
@@ -111,9 +113,8 @@ def plot(g: nx.Graph, nom_fitxer: str) -> None:
    
 def main()-> None:
     g = get_buses_graph()
-    #show(g)
+    show(g)
     image_path = os.path.abspath('map.png')
-    
     plot(g,"map.png")
     
 if __name__=='__main__':
