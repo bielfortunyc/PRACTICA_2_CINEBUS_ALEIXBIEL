@@ -5,27 +5,10 @@ import pickle
 import matplotlib.pyplot as plt
 import os
 from dataclasses import dataclass
-from provabuses import *
+from busesactual import *
 CityGraph : TypeAlias = nx.Graph
 OsmnxGraph : TypeAlias = nx.MultiDiGraph
 
-@dataclass
-class Cruilla:
-    id: int
-    pos: Coord
-    def __init__(self, id: int, pos:Coord) -> None:
-        self.id = id
-        self.pos = pos
-class Carrer:
-    node_origen_id: int
-    node_desti_id: int
-    longitud: float
-    info: str
-    def __init__(self, node_origen_id: int, node_desti_id: int, longitud: float, info:str) -> None:
-        self.node_origen_id = node_origen_id
-        self.node_desti_id = node_desti_id
-        self.longitud = longitud
-        self.info = info
 
 def get_osmnx_graph() -> OsmnxGraph:
     filename = 'graf_barcelona'
@@ -65,34 +48,42 @@ def load_osmnx_graph(filename: str) -> OsmnxGraph:
     with open(ruta_document, 'rb') as file:
         graf = pickle.load(file)
     return graf
+def distance(pos1:tuple[float,float], pos2:tuple[float,float]) -> float:
+    d = (pos1[0] - pos2[0])**2 + \
+            (pos1[1] - pos2[1])**2
+    return d**(1/2)
+
 
 def build_city_graph(g1: OsmnxGraph, g2: BusesGraph) -> CityGraph:
     # retorna un graf fusió de g1 i g2
     
     city_graph = nx.Graph()
     for node_id, data in g1.nodes(data=True):
-        cruilla = Cruilla(id=node_id, pos=(data['y'],data['x']))
-        city_graph.add_node(cruilla.id, pos= cruilla.pos, node = cruilla)
+        city_graph.add_node(node_id, pos = (data['y'],data['x']), tipus = "Cruilla")
     
     for u, v, data in g1.edges(data=True):
-        carrer = Carrer(node_origen_id = u, node_desti_id = v, longitud= data['length'], info = 'Carrer')
-        if 'geometry' in data:
-            del(data['geometry'])
-        city_graph.add_edge(carrer.node_origen_id,carrer.node_desti_id, aresta = carrer)
+        if u != v:      
+            city_graph.add_edge(u,v, longitud= data['length'], tipus = "Carrer")
     
-    for node_attrs in g2.nodes.values():
-        parada = Parada(id = node_attrs['node'].id, pos = node_attrs['node'].pos)
-        city_graph.add_node(parada.id, pos = parada.pos, node = parada, info = 'Bus')
-        cruilla_propera = ox.nearest_nodes(g1, parada.pos[0], parada.pos[1])
-        city_graph.add_edge(parada.id,cruilla_propera, aresta = cruilla_propera, info = 'Carrer')
-        #no detecta que parada i cruilla_propera estiguin ja al graf i genera problems 
-        #perquè els torna a afegir sense atributs.
+    llista_pos_lat: list[tuple[float]] = []
+    llista_pos_lon: list[tuple[float]] = []
+    
+    for node_id, data in g2.nodes(data = True):
+        city_graph.add_node(node_id, pos = data['pos'])
+        llista_pos_lat.append(data['pos'][0])
+        llista_pos_lon.append(data['pos'][1])
+        
+    
+    cruilles_properes = ox.distance.nearest_nodes(g1, llista_pos_lat,llista_pos_lon, return_dist = False)
+    for i, id in enumerate(g2.nodes):
+        cruilla_propera_corresponent = cruilles_properes[i]
+        if id != cruilla_propera_corresponent:
+            city_graph.add_edge(id,cruilla_propera_corresponent,tipus = "Carrer")        
     
     
-    for edge_attrs in g2.edges.values():        
-        linia = edge_attrs['aresta']  
-        city_graph.add_edge(linia.node_origen.id, linia.node_desti.id, info = 'Bus')
-    
+    for u, v, data in g1.edges(data = True):        
+        city_graph.add_edge(u,v, info = 'Bus')
+        #falta calcular longitud
         
         
     return city_graph
@@ -109,11 +100,8 @@ def find_path(ox_g: OsmnxGraph, g: CityGraph, src: Coord, dst: Coord) -> Path:
 """
 def show(g: CityGraph) -> None:
     # mostra g de forma interactiva en una finestra
-    positions = {}
-    for node_id, data in g.nodes(data=True):
-        if 'node' in data:
-            positions[node_id] = data['node'].pos
-    nx.draw_networkx(g, pos=positions, node_size=10, with_labels=False)
+    posicions = nx.get_node_attributes(g, 'pos')
+    nx.draw_networkx(g, pos=posicions, node_size=10, with_labels=False)
     plt.show()
     
 #def plot(g: CityGraph, filename: str) -> None:
