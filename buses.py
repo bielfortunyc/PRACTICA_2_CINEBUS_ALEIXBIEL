@@ -46,7 +46,7 @@ def get_buses_graph() -> nx.Graph:
                 
             # Afegir l'aresta amb l'atribut de la línia de bus
             if node_origen_id != node_desti_id:
-                graph.add_edge(node_origen_id, node_desti_id)
+                graph.add_edge(node_origen_id, node_desti_id, tipus = "Bus")
 
     return graph
 
