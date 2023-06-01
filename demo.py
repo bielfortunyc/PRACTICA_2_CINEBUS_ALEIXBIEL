@@ -4,24 +4,23 @@ from billboard import *
 from rich.console import Console
 from rich.table import Table
 from rich.text import Text
-
+from geopy.geocoders import Nominatim
 
 def main() -> None:
     # mostrar el nom dels autors del projecte.
     console = Console()
-    console.print("Aleix Albaiges i Gabriel Fortuny",
+    console.print("Benvingut!",
                   style="bold", highlight=True)
 
     cartellera = read()
-    busos = get_buses_graph()
-    ciutat = ...  # no sé
-    instruccions = [
+    instruccions = [ "Opcions:",
         "1. Mostra el contingut de la cartellera",
         "2. Cerca a la cartellera",
-        "3. Mostra el graf de busos",
-        "4. Mostra el graf de ciutat",
+        "3. Crea i mostra el graf de busos",
+        "4. Crea i mostra el graf de ciutat",
         "5. Mostra el camí per anar a veure una pel·lícula",
-        "6. Sortir"
+        "6. Crèdits i noms dels autors del projecte",
+        "7. Sortir"
     ]
 
     while True:
@@ -125,40 +124,55 @@ def main() -> None:
                 console.print("Opció no vàlida", style="purple4")
         # mostrar el graf de busos.
         elif opcio == '3':
+            busos = get_buses_graph()
             show(busos)
+            console.print("Vols desar la imatge amb el mapa dels busos en un fitxer? ", end='')
+            console.print("1. Sí", "2. No", end='\n')
+            n = input()
+            if n == '1':
+                plot(busos, "graf_busos.png")
         # mostrar el graf de ciutat.
         elif opcio == '4':
-            show()
+            g1 = get_osmnx_graph()
+            g2 = get_buses_graph()
+            city = build_city_graph(g1, g2)
+            show(city)
+            console.print("Vols desar la imatge amb el mapa de la ciutat en un fitxer? ", end='')
+            console.print("1. Sí", "2. No", end='\n')
+            n = input()
+            if n == '1':
+                plot(city, "graf_barcelona.png")
         # # mostrar el camí per anar a veure una pel·lícula desitjada des d'un lloc donat en un moment donat. De totes les projeccions possibles cal mostrar el camí per arribar a la que comenci abans (i que s'hi pugui arribar a temps a peu i en bús).
         elif opcio == '5':
-            console.print(
-                "Quina Pel·lícula vols veure? Si encara no ho saps consulta primer la cartellera.")
-            pel = input()
-            trobada = False
-            for intent in cartellera.films():
-                if intent.title == pel:
-                    trobada = True
-                    sessions = {x for x in cartellera.projections()
-                                if pel == x.film().title}
-                    escriu_cartellera(list(sessions))
+            geolocator = Nominatim(user_agent="geocoder_ap2")
+            g1 = get_osmnx_graph()
+            g2 = get_buses_graph()
+            city = build_city_graph(g1, g2)
+            sessions = cerca_pelicula(cartellera)
+            escriu_cartellera(list(sessions))
+            console.print("Escriu a quin cinema vols anar.")
+            cine = input()
+            sessions2 = combina(sessions, 2, cine)
+            escriu_cartellera(list(sessions2))
+            console.print("Des de quina adressa de Barcelona vols sortir?")
+            adressa = input()
+            coordenades : Coord = geolocator.geocode(adressa)
+            if coordenades is not None:
+                lat, lon = coordenades.latitude, coordenades.longitude
+                console.print("Creant camí des de", adressa, "fins a", cinemes()[cine].address)
+                cami = find_path(g1, city, (lon, lat), cinemes()[cine].coordenades)
+                plot_path(city, cami, "cami_cinema.png")
 
-            if not trobada:
-                text = Text.assemble(("Vaja! ", "red"), "La pel·lícula que has introduit no es troba a la cartellera. ",  (
-                    "Assegura't d'escriure una que hi sigui o fixa't en si l'has escrit bé.", "cyan"))
-                console.print(text)
-
-            # A partir d'aquí, calcula el cinema que estigui més a prop d'entre tots els que la fan en el temps possible per arribar-hi.
         elif opcio == '6':
-            break
-
+            console.print("Aleix Albaiges Torres i Gabriel Fortuny Carretero")
+            
         elif opcio == '7':
-            for projec in cartellera.projections():
-                projec.escriu()
+            break
 
         else:
             console.print("Opció no vàlida", style="purple4")
-        # crear la cartellera.
-    console.print("Adeu! La consola s'ha tancat.", style='magenta3')
+        
+    console.print("Adéu! Gràcies per visitar el nostre projecte. Aleix i Gabriel", style='magenta3')
 
 
 def cerca_horari(cartellera: Billboard) -> list[Projection]:
@@ -183,7 +197,7 @@ def cerca_pelicula(cartellera: Billboard) -> list[Projection]:
     return sessions
 
 
-def combina(sessions: list[Projection], y: int) -> list[Projection]:
+def combina(sessions: list[Projection], y: int, cine: str = '') -> list[Projection]:
     """Donades les sessions ja condicionades per un paràmetre, se les redueix al segon paràmetre i es retorna una llista de projeccions que compleixen ambdues restriccions."""
     console = Console()
     if y == 1:
@@ -194,8 +208,10 @@ def combina(sessions: list[Projection], y: int) -> list[Projection]:
         sort_hora(combinacio)
         return combinacio
     elif y == 2:
-        console.print("A quin Cinema vols anar? ", end='')
-        cine = input()
+        
+        if cine == '':
+            console.print("A quin Cinema vols anar? ", end='')
+            cine = input()
         combinacio = [
             x for x in sessions if x.cinema().name == cine]
         sort_hora(combinacio)
