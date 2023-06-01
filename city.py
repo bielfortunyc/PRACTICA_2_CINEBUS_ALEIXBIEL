@@ -4,8 +4,7 @@ import osmnx as ox
 import pickle
 import matplotlib.pyplot as plt
 import os
-from dataclasses import dataclass
-from busesactual import *
+from buses import *
 CityGraph : TypeAlias = nx.Graph
 OsmnxGraph : TypeAlias = nx.MultiDiGraph
 Coord: TypeAlias = tuple[float,float]
@@ -79,7 +78,7 @@ def build_city_graph(g1: OsmnxGraph, g2: BusesGraph) -> CityGraph:
     llista_pos_lon: list[tuple[float]] = []
     
     for node_id, data in g2.nodes(data = True):
-        city_graph.add_node(node_id, pos = data['pos'])
+        city_graph.add_node(node_id, pos = data['pos'], tipus = "Parada")
         llista_pos_lon.append(data['pos'][0])
         llista_pos_lat.append(data['pos'][1])
         
@@ -101,9 +100,17 @@ def build_city_graph(g1: OsmnxGraph, g2: BusesGraph) -> CityGraph:
     for u, v, data in g2.edges(data = True):
         origen = dict_parada_cruilla_corresponent[u]
         desti = dict_parada_cruilla_corresponent[v]
-        longitud = nx.shortest_path_length(g1, source=origen, target=desti, weight= 'weight')
-
-        city_graph.add_edge(u, v, weight = longitud, info = 'Bus')
+        #longitud = nx.shortest_path_length(g1, source = origen, target = desti, weight= 'weight')
+        shortest_path = ox.distance.shortest_path(g1, orig = origen, dest = desti, weight = 'weight')
+        longitud : float = 0
+        for i in range(len(shortest_path)-1):
+            id = shortest_path[i]
+            next_id = shortest_path[i+1]
+            try:
+                longitud += city_graph[id][next_id]['weight']
+            except:
+                print(g1[id][next_id])
+        city_graph.add_edge(u, v, weight = longitud/3, tipus = 'Bus')
         
         
         
@@ -111,18 +118,22 @@ def build_city_graph(g1: OsmnxGraph, g2: BusesGraph) -> CityGraph:
 
 
 def find_path(ox_g: OsmnxGraph, g: CityGraph, src: Coord, dst: Coord) -> Path: 
-    src_node = ox.distance.nearest_nodes(ox_g, src[0], src[1])
-    dst_node = ox.distance.nearest_nodes(ox_g, dst[0], dst[1])
+    src_node = ox.distance.nearest_nodes(ox_g, src[1], src[0])
+    dst_node = ox.distance.nearest_nodes(ox_g, dst[1], dst[0])
     shortest_path = ox.distance.shortest_path(g, orig = src_node, dest = dst_node, weight = 'weight')
-    
     path = nx.Graph()
     for i in range(len(shortest_path)-1):
         id = shortest_path[i]
         pos = (g.nodes[id]['pos'])
-        path.add_node(id, pos = pos)
-        path.add_edge(id, shortest_path[i+1])
+        path.add_node(id, pos = pos, tipus = g.nodes[id]['tipus'])
+        next_id = shortest_path[i+1]
+        
+        path.add_edge(id, next_id, tipus = g[id][next_id]['tipus'])
+        
+            
+        
     ultim_id = shortest_path[-1]
-    path.add_node(ultim_id, pos = (g.nodes[ultim_id]['pos']))
+    path.add_node(ultim_id, pos = (g.nodes[ultim_id]['pos']), tipus = g.nodes[ultim_id]['tipus'])
     return path
 
 
@@ -138,27 +149,36 @@ def plat(g: CityGraph, filename: str) -> None:
    # desa g com una imatge amb el mapa de la cuitat de fons en l'arxiu filename
    ...
 def plot_path(g: CityGraph, p: Path, filename: str) -> None: 
+    
     # mostra el camí p en l'arxiu filename
-    city_map = staticmap.StaticMap(3500, 3500)
+    path_map = staticmap.StaticMap(3500, 3500)
 
     # Afegir les parades com a marcadors al mapa
     for node in p.nodes:
         x, y = p.nodes[node]['pos']
-        city_map.add_marker(staticmap.CircleMarker((x,y), "red", 10))
-
+        try:
+            if p.nodes[node]['tipus'] == "Cruilla":
+                path_map.add_marker(staticmap.CircleMarker((x,y), "black", 15))
+            else:
+                path_map.add_marker(staticmap.CircleMarker((x,y), "blue", 15))
+        except KeyError:
+            print(node, p.nodes[node])
+            
     # Afegir els trajectes com a línies al mapa
     for u, v, data in p.edges(data = True):
         x1, y1 = p.nodes[u]['pos']
-        x2, y2 = p.nodes[v]['pos']    
-        if data['tipus'] == "Cruilla":
-            line = staticmap.Line(((x1,y1),(x2,y2)), "magenta", 15)
-        else: 
-            line = staticmap.Line(((x1,y1),(x2,y2)), "red", 15)
+        x2, y2 = p.nodes[v]['pos']
         
 
-        add_line(line)
+        if data['tipus'] == "Carrer":
+            line = staticmap.Line(((x1,y1),(x2,y2)), "red", 15)
+        else: 
+            line = staticmap.Line(((x1,y1),(x2,y2)), "green", 15)
+        
+
+        path_map.add_line(line)
     # Generar el mapa amb les parades i trajectes
-    image = city_map.render()
+    image = path_map.render()
 
     # Desar el mapa com una imatge
     image.save(filename)
@@ -177,7 +197,9 @@ def main() -> None:
     """
     #show(city)
     #plot(city,"map_barcelona.png")
-    path = find_path(g1, city, (2.2172596,41.4101085), (2.162393, 41.386218))
+    path = find_path(g1, city, (41.4101085,2.2172596), (41.386218, 2.162393))
+    
+
     plot_path(city, path, "path_proper.png")
 if __name__ ==  '__main__':
     main()
