@@ -5,6 +5,8 @@ import pickle
 import matplotlib.pyplot as plt
 import os
 from buses import *
+from haversine import haversine, Unit
+
 CityGraph : TypeAlias = nx.Graph
 OsmnxGraph : TypeAlias = nx.MultiDiGraph
 Coord: TypeAlias = tuple[float,float]
@@ -56,23 +58,25 @@ def load_osmnx_graph(filename: str) -> OsmnxGraph:
         graf = pickle.load(file)
     return graf
 
-def distance(n1_lat: float, n1_lon: float, n2_lat: float, n2_lon: float) -> float:
+def distance(n1_coord: tuple[float,float], n2_coord: tuple[float, float]) -> float:
+    return haversine(n1_coord, n2_coord, unit = Unit.METERS)
+
+#def distance_(n1_lat: float, n1_lon: float, n2_lat: float, n2_lon: float) -> float:
     d = (n1_lat - n2_lat)**2 + \
             (n1_lon - n2_lon)**2
     return d**(1/2)
-
-
 def build_city_graph(g1: OsmnxGraph, g2: BusesGraph) -> CityGraph:
     # retorna un graf fusió de g1 i g2
     
     city_graph = nx.Graph()
-    
+    velocitat_bus = 5
+    velocitat_caminant = 1.9
     for node_id, data in g1.nodes(data=True):
         city_graph.add_node(node_id, pos = (data['x'],data['y']), tipus = "Cruilla")
     
     for u, v, data in g1.edges(data=True):
         if u != v:      
-            city_graph.add_edge(u,v, weight= data['length'], tipus = "Carrer")
+            city_graph.add_edge(u,v, weight= data['length']/velocitat_caminant, tipus = "Carrer")
     
     llista_pos_lat: list[tuple[float]] = []
     llista_pos_lon: list[tuple[float]] = []
@@ -89,28 +93,26 @@ def build_city_graph(g1: OsmnxGraph, g2: BusesGraph) -> CityGraph:
         cruilla_propera_corresponent = cruilles_properes[i]
         dict_parada_cruilla_corresponent[id] = cruilla_propera_corresponent
         if id != cruilla_propera_corresponent:
-            n1_lon: float = llista_pos_lat[i]
-            n1_lat: float = llista_pos_lon[i]
-            n2_lon: float = g1.nodes[cruilla_propera_corresponent]['x']
-            n2_lat: float = g1.nodes[cruilla_propera_corresponent]['y']
-            longitud = distance(n1_lon, n1_lat, n2_lon, n2_lat)
-            city_graph.add_edge(id,cruilla_propera_corresponent, weight = longitud, tipus = "Carrer")        
+            
+            
+            city_graph.add_edge(id,cruilla_propera_corresponent, tipus = "Carrer")        
     
     
     for u, v, data in g2.edges(data = True):
         origen = dict_parada_cruilla_corresponent[u]
         desti = dict_parada_cruilla_corresponent[v]
-        #longitud = nx.shortest_path_length(g1, source = origen, target = desti, weight= 'weight')
         shortest_path = ox.distance.shortest_path(g1, orig = origen, dest = desti, weight = 'weight')
-        longitud : float = 0
+        pes : float = (distance(g2.nodes[u]['pos'],city_graph.nodes[origen]['pos']) + \
+            distance(g2.nodes[v]['pos'],city_graph.nodes[desti]['pos'])) / velocitat_caminant
         for i in range(len(shortest_path)-1):
             id = shortest_path[i]
             next_id = shortest_path[i+1]
             try:
-                longitud += city_graph[id][next_id]['weight']
+                pes += city_graph[id][next_id]['weight']/velocitat_bus
             except:
                 print(g1[id][next_id])
-        city_graph.add_edge(u, v, weight = longitud/3, tipus = 'Bus')
+         
+        city_graph.add_edge(u, v, weight = pes, tipus = 'Bus')
         
         
         
@@ -125,18 +127,28 @@ def find_path(ox_g: OsmnxGraph, g: CityGraph, src: Coord, dst: Coord) -> Path:
     for i in range(len(shortest_path)-1):
         id = shortest_path[i]
         pos = (g.nodes[id]['pos'])
+        
         path.add_node(id, pos = pos, tipus = g.nodes[id]['tipus'])
         next_id = shortest_path[i+1]
-        
-        path.add_edge(id, next_id, tipus = g[id][next_id]['tipus'])
-        
+        if 'weight' in g[id][next_id]:
+            weight = g[id][next_id]['weight']
+            path.add_edge(id, next_id,weight = weight, tipus = g[id][next_id]['tipus'])
+        else: 
+            path.add_edge(id, next_id, tipus = g[id][next_id]['tipus'])
             
         
     ultim_id = shortest_path[-1]
     path.add_node(ultim_id, pos = (g.nodes[ultim_id]['pos']), tipus = g.nodes[ultim_id]['tipus'])
     return path
 
-
+def total_time_path(p : Path) -> float:
+    temps = 0
+    for u, v, data in p.edges(data = True):
+        if 'weight' in data:
+            temps += data['weight']
+            
+    return temps
+    
     
 
 def show(g: CityGraph) -> None:
@@ -189,17 +201,14 @@ def main() -> None:
     g1 = get_osmnx_graph()
     g2 = get_buses_graph()
     city = build_city_graph(g1, g2)
-    """
-    g1 = get_osmnx_graph()
-    g2 = get_buses_graph()
-    city = build_city_graph(g1, g2)
     
-    """
+    
     #show(city)
     #plot(city,"map_barcelona.png")
     path = find_path(g1, city, (41.4101085,2.2172596), (41.386218, 2.162393))
-    
-
-    plot_path(city, path, "path_proper.png")
+    #print(distance((41.4097177,2.1640022), (41.409576, 2.163956)))
+    print(path.edges(data=True))
+    print(total_time_path(path))
+    #plot_path(city, path, "path_proper.png")
 if __name__ ==  '__main__':
     main()
