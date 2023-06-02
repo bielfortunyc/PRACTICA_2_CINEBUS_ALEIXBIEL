@@ -5,7 +5,6 @@ from bs4 import BeautifulSoup
 import requests
 from typing import Any
 
-
 @dataclass
 class Film:
     title: str
@@ -138,65 +137,65 @@ def cinemes() -> dict[str, Cinema]:
     """Llista que recull les dades dels cinemes de Barcelona i les retorna com a diccionari amb el nom del cinema i el tipus Cinema."""
     cinemes: dict[str, Cinema] = dict()
     cinemes['Arenas Multicines 3D'] = Cinema(
-        'Arenas Multicines 3D', 'Gran Via de les Corts Catalanes, 385, 08015 Barcelona', (41.3762958, 2.1493046396153845))
+        'Arenas Multicines 3D', 'Gran Via de les Corts Catalanes, 385, 08015 Barcelona', (2.1493046396153845, 41.3762958))
     cinemes['Aribau Multicines'] = Cinema(
-        'Aribau Multicines', 'Calle Aribau, 8, 08011 Barcelona', (41.386218, 2.162393))
+        'Aribau Multicines', 'Calle Aribau, 8, 08011 Barcelona', (2.162393, 41.386218))
     cinemes['Bosque Multicines'] = Cinema(
-        'Bosque Multicines', 'Rambla de Prat 16, 08012 Barcelona', (41.401519050000005, 2.1516103914622153))
+        'Bosque Multicines', 'Rambla de Prat 16, 08012 Barcelona', (2.1516103914622153, 41.401519050000005))
     cinemes['Cinema Comedia'] = Cinema(
-        'Cinema Comedia', 'Passeig de Gracia, 13, 08007 Barcelona', (41.389718, 2.167663))
+        'Cinema Comedia', 'Passeig de Gracia, 13, 08007 Barcelona', (2.167663, 41.389718))
     cinemes['Cinemes Girona'] = Cinema(
-        'Cinemes Girona', 'Carrer de Girona 173-175, 08025 Barcelona', (41.399941, 2.1642872))
+        'Cinemes Girona', 'Carrer de Girona 173-175, 08025 Barcelona', (2.1642872, 41.399941))
     cinemes['Cines Verdi Barcelona'] = Cinema(
-        'Cines Verdi Barcelona', 'Calle Verdi, 32, 08012 Barcelona', (41.403920, 2.156800))
+        'Cines Verdi Barcelona', 'Calle Verdi, 32, 08012 Barcelona', (2.156800, 41.403920))
     cinemes['Cinesa Diagonal 3D'] = Cinema(
-        'Cinesa Diagonal 3D', 'Santa Fe de Nou Mèxic s/n, 08017 Barcelona', (41.393731, 2.136119))
+        'Cinesa Diagonal 3D', 'Santa Fe de Nou Mèxic s/n, 08017 Barcelona', (2.136119, 41.393731))
     cinemes['Cinesa Diagonal Mar 18'] = Cinema(
-        'Cinesa Diagonal Mar 18', 'Avinguda Diagonal, 3, 08019 Barcelona', (41.4101085, 2.2172596))
+        'Cinesa Diagonal Mar 18', 'Avinguda Diagonal, 3, 08019 Barcelona', (2.2172596, 41.4101085))
     cinemes['Cinesa La Maquinista 3D'] = Cinema(
-        'Cinesa La Maquinista 3D', 'Passeig Potosí 2 - Centre Comercial La Maquinista, 08030 Barcelona', (41.439119, 2.198340))
+        'Cinesa La Maquinista 3D', 'Passeig Potosí 2 - Centre Comercial La Maquinista, 08030 Barcelona', (2.198340, 41.439119))
     cinemes['Cinesa SOM Multiespai'] = Cinema(
-        'Cinesa SOM Multiespai', 'Paseo Andreu Nin s/n - Pintor Alzamora, 08016 Barcelona', (41.435624, 2.180063))
+        'Cinesa SOM Multiespai', 'Paseo Andreu Nin s/n - Pintor Alzamora, 08016 Barcelona', (2.180063, 41.435624))
     cinemes['Glòries Multicines'] = Cinema(
-        'Glòries Multicines', 'Avinguda Diagonal, 208, 08018 Barcelona', (41.4053714, 2.1928801))
+        'Glòries Multicines', 'Avinguda Diagonal, 208, 08018 Barcelona', (2.1928801, 41.4053714))
     cinemes['Gran Sarrià Multicines'] = Cinema(
-        'Gran Sarrià Multicines', 'General Mitre, 38-44, 08017 Barcelona', (41.3991688, 2.1340682))
+        'Gran Sarrià Multicines', 'General Mitre, 38-44, 08017 Barcelona', (2.1340682, 41.3991688))
     cinemes['Maldá Arts Forum'] = Cinema(
-        'Maldà Arts Forum', 'Carrer del Pi, 5, 08002 Barcelona', (41.3832363, 2.1739003))
+        'Maldà Arts Forum', 'Carrer del Pi, 5, 08002 Barcelona', (2.1739003, 41.3832363))
     cinemes['Renoir Floridablanca'] = Cinema(
-        'Renoir Floridablanca', 'Calle Floridablanca, 135, 08011 Barcelona', (41.381718, 2.162713))
+        'Renoir Floridablanca', 'Calle Floridablanca, 135, 08011 Barcelona', (2.162713, 41.381718))
     cinemes['Sala Phenomena Experience'] = Cinema(
-        'Sala Phenomena Experience', 'C/ Sant Antoni Maria Claret, 168, 08041 Barcelona', (41.5982715, 2.2894702))
+        'Sala Phenomena Experience', 'C/ Sant Antoni Maria Claret, 168, 08041 Barcelona', (2.2894702, 41.5982715))
     cinemes['Yelmo Cines Icaria 3D'] = Cinema(
-        'Yelmo Cines Icaria 3D', 'Calle Salvador Espriu, 61, 08005 Barcelona', (41.390225, 2.197470))
+        'Yelmo Cines Icaria 3D', 'Calle Salvador Espriu, 61, 08005 Barcelona', (2.197470, 41.390225))
     cinemes['Boliche Cinemes'] = Cinema(
-        'Boliche Cinemes', 'Avinguda Diagonal, 508, 08006 Barcelona', (41.3952918, 2.1536309))
+        'Boliche Cinemes', 'Avinguda Diagonal, 508, 08006 Barcelona', (2.1536309, 41.3952918))
     cinemes['Zumzeig Cinema'] = Cinema(
-        'Zumzeig Cinema', 'Carrer Béjar, 53, 8014 Barcelona', (41.3773203, 2.1450266))
+        'Zumzeig Cinema', 'Carrer Béjar, 53, 8014 Barcelona', (2.1450266, 41.3773203))
     cinemes['Balmes Multicines'] = Cinema(
-        'Balmes Multicines', 'Calle Balmes, 422-424, 08022 Barcelona', (41.2202618, 1.7241557))
+        'Balmes Multicines', 'Calle Balmes, 422-424, 08022 Barcelona', (1.7241557, 41.2202618))
     cinemes['Cinesa La Farga 3D'] = Cinema(
-        'Cinesa La Farga 3D', 'Avinguda Josep Tarradellas 145, 08901 L\'Hospitalet de Llobregat', (41.391084, 2.143663))
+        'Cinesa La Farga 3D', 'Avinguda Josep Tarradellas 145, 08901 L\'Hospitalet de Llobregat', (2.143663, 41.391084))
     cinemes['Filmax Gran Via 3D'] = Cinema(
-        'Filmax Gran Via 3D', 'Avinguda Gran Via 75 - Centre Comercial Gran Via 2, 08908 L\'Hospitalet de Llobregat', (41.358786, 2.128130))
+        'Filmax Gran Via 3D', 'Avinguda Gran Via 75 - Centre Comercial Gran Via 2, 08908 L\'Hospitalet de Llobregat', (2.128130, 41.358786))
     cinemes['Full HD Cinemes Centre Splau'] = Cinema(
-        'Full HD Cinemes Centre Splau', 'Centre Comercial Splau! - Avinguda Baix LLobregat, 08940 Cornella De Llobregat', (41.347255, 2.077846))
+        'Full HD Cinemes Centre Splau', 'Centre Comercial Splau! - Avinguda Baix LLobregat, 08940 Cornella De Llobregat', (2.077846, 41.347255))
     cinemes['Cine Capri'] = Cinema(
-        'Cine Capri', 'Avinguda Virgen Montserrat, 111, 08820 Prat De Llobregat', (41.325762, 2.095167))
+        'Cine Capri', 'Avinguda Virgen Montserrat, 111, 08820 Prat De Llobregat', (2.095167, 41.325762))
     cinemes['Ocine Màgic'] = Cinema(
-        'Ocine Màgic', 'Carrer de la concòrdia, 1, 08917 Badalona', (41.442599, 2.229622))
+        'Ocine Màgic', 'Carrer de la concòrdia, 1, 08917 Badalona', (2.229622, 41.442599))
     cinemes['Cinebaix'] = Cinema(
-        'Cinebaix', 'Joan Batllori, 21, 08980 Sant Feliu De Llobregat', (41.3819167, 2.0448757))
+        'Cinebaix', 'Joan Batllori, 21, 08980 Sant Feliu De Llobregat', (2.0448757, 41.3819167))
     cinemes['Cinemes Can Castellet'] = Cinema(
-        'Cinemes Can Castellet', 'Calle Jaume I, 32, 08830 Sant Boi De Llobregat', (41.345130, 2.040618))
+        'Cinemes Can Castellet', 'Calle Jaume I, 32, 08830 Sant Boi De Llobregat', (2.040618, 41.345130))
     cinemes['Cinemes Sant Cugat'] = Cinema(
-        'Cinemes Sant Cugat', 'Centre Cultural Sant Cugat - Avda. Pla del Vinyet s/n, 08190 Sant Cugat Del Vallès', (41.469601, 2.090266))
+        'Cinemes Sant Cugat', 'Centre Cultural Sant Cugat - Avda. Pla del Vinyet s/n, 08190 Sant Cugat Del Vallès', (2.090266, 41.469601))
     cinemes['Cines Montcada'] = Cinema(
-        'Cines Montcada', 'Calle Verdi, 2, 08110 Montcada', (41.494098, 2.180340))
+        'Cines Montcada', 'Calle Verdi, 2, 08110 Montcada', (2.180340, 41.494098))
     cinemes['Yelmo Cines Baricentro'] = Cinema(
-        'Yelmo Cines Baricentro', 'N-150, km 6, 08210 Barcelona', (41.507579, 2.137576))
+        'Yelmo Cines Baricentro', 'N-150, km 6, 08210 Barcelona', (2.137576, 41.507579))
     cinemes['Yelmo Cines Sant Cugat'] = Cinema(
-        'Yelmo Cines Sant Cugat', 'Avinguda Via Augusta, 2, 08174 Sant Cugat del Vallès', (41.483465, 2.054289))
+        'Yelmo Cines Sant Cugat', 'Avinguda Via Augusta, 2, 08174 Sant Cugat del Vallès', (2.054289, 41.483465))
     return cinemes
 
 
