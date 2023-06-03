@@ -1,270 +1,382 @@
-from dataclasses import dataclass
-import re
-import json
-from bs4 import BeautifulSoup
-import requests
-from typing import Any
+import yogi
+from city import *
+from billboard import *
+from rich.console import Console
+from rich.table import Table
+from rich.text import Text
+from geopy.geocoders import Nominatim
 
-@dataclass
-class Film:
-    title: str
-    genre: str
-    director: str
-    actors: list[str]
+def main() -> None:
+    # mostrar el nom dels autors del projecte.
+    console = Console()
+    clear()
+    console.print("Benvingut!",
+                  style="bold", highlight=True)
 
-    def __init__(
-            self,
-            elements: dict[str, Any]) -> None:
-        "Inicialitza la classe film a partir d'un diccionari amb les claus title, genre, directors i actors."
-        self.title = elements['title']
-        self.genre = elements['genre']
-        self.director = elements['directors']
-        self.actors = elements['actors']
+    cartellera = read()
+    g1 = get_osmnx_graph()
+    g2 = get_buses_graph()
+    city = build_city_graph(g1, g2)
+            
+    instruccions = [ "1. Mostra el contingut de la cartellera",
+        "2. Cerca a la cartellera",
+        "3. Crea i mostra el graf de busos",
+        "4. Crea i mostra el graf de ciutat",
+        "5. Mostra el camí per anar a veure una pel·lícula",
+        "6. Crèdits i noms dels autors del projecte",
+        "7. Sortir"
+    ]
+    
+    while True:
+        taula = Table()
+        taula.add_column("Opcions", style='red')
+        for inst in instruccions:
+            taula.add_row(inst, style='bright_white bold')
+        console.print(taula)
+        
+        opcio = input("Escull una opció: ")
+        clear()
+        # mostrar el contingut de la cartellera.
+        if opcio == '1':
+            escriu_cartellera(cartellera.projections())
+        # cercar a la cartellera.
+        elif opcio == '2':
+            cerques = ["1. Pel·lícula", "2. Cinema", "3. Horari", "4. Combina",
+                       "5. Cerca per mot", "6. Genere", "7. Actor", "8. Director"]
+            taula = Table()
+            taula.add_column("Cerques")
+            for cerca in cerques:
+                taula.add_row(cerca, style='dark_turquoise')
+            console.print(taula)
+            console.print("Què vols cercar? ", end='')
+            cerca = input()
+            if cerca == '1':
+                sessions = cerca_pelicula(cartellera)
+                if not len(sessions):
+                    text = Text.assemble(("Vaja! ", "red"), "La pel·lícula que has introduit no es troba a la cartellera. ",  (
+                        "Assegura't d'escriure una que hi sigui o fixa't en si l'has escrit bé.", "cyan"))
+                    console.print(text)
 
-
-class Cinema:
-    name: str
-    address: str
-    coordenades: tuple[float, float]  # Latitud, longitud
-
-    def __init__(self, name: str, address: str, coordenades: tuple[float, float]) -> None:
-        "Inicialitza la classe Cinema donat el nom, adreça i coordenades, que es treuen d'una llista fixa."
-        self.name = name
-        self.address = address
-        self.coordenades = coordenades
-
-
-class Projection:
-    _film: Film
-    _cinema: Cinema
-    _time: tuple[int, int]   # hora:minut
-    # language: str de moment suda perquè no hi és a la info de Sensacine.
-
-    def __init__(self, film: Film, cinema: Cinema,
-                 time: tuple[int, int]) -> None:
-        "Inicialitza la classe Projection donada una pel·licula, cinema i hora."
-        self._film, self._cinema, self._time = film, cinema, time
-
-    def film(self) -> Film:
-        """Retorna la pel·licula de la projeccio."""
-        return self._film
-
-    def cinema(self) -> Cinema:
-        """Retorna el cinema de la projeccio."""
-        return self._cinema
-
-    def time(self) -> tuple[int, int]:
-        """Retorna l'hora de començament de la projeccio. Hora, minut"""
-        return self._time
-
-
-class Billboard:
-    _films: list[Film]
-    _cinemes: list[Cinema]
-    _projections: list[Projection]
-
-    def __init__(
-            self,
-            films: list[Film],
-            cinemes: list[Cinema],
-            projections: list[Projection]) -> None:
-        """Inicialitza la classe Billboard donades una llista de pel·licules, cinemes i projeccions."""
-        self._films, self._cinemes, self._projections = films, cinemes, projections
-
-    def films(self) -> list[Film]:
-        """Retorna la llista de pel·licules."""
-        return self._films
-
-    def projections(self) -> list[Projection]:
-        """Retorna la llista de projeccions."""
-        return self._projections
-
-    def cinemes(self) -> list[Cinema]:
-        """Retorna la llista de cinemes."""
-        return self._cinemes
-
-    def troba_mot(self, m: str) -> list[Projection]:
-        """Retorna una llista de projeccions que tenen el mot m al titol de la pel·licula i nom del cinema."""
-        matching_mots = [
-            element for element in self.projections() if m in element.film().title]
-        matching_mots += [element for element in self.projections()
-                          if m in element.cinema().name]
-        return matching_mots
-
-    def troba_actor(self, m: str) -> list[Projection]:
-        """Retorna una llista de projeccions les pel·licules de les qual tenen l'actor m. Prec: s'ha d'escriure el nom sencer."""
-        matching_mots = [
-            element for element in self.projections() if m in element.film().actors]
-        return matching_mots
-
-    def troba_director(self, m: str) -> list[Projection]:
-        """Retorna una llista de projeccions les pel·licules de les qual tenen el director m. Prec: s'ha d'escriure el nom sencer."""
-        matching_mots = [
-            element for element in self.projections() if m in element.film().director]
-        return matching_mots
-
-    def troba_genere(self, m: str) -> list[Projection]:
-        """Retorna una llista de projeccions les pel·licules de les qual són del genere m. Prec: s'ha d'escriure correctament."""
-        matching_mots = [
-            element for element in self.projections() if m in element.film().genre]
-        return matching_mots
-
-
-def sort_hora(projections: list[Projection]) -> None:
-    """Ordena la llista de projeccions projections per horari de petit a gran."""
-    sorted(projections, key=lambda x: x.time()[0])
-
-
-def read() -> Billboard:
-    """Funció principal del programa billboard que llegeix la cartellera del cinemes de Barcelona i la retorna en la classe Billboard."""
-    webs = ['https://www.sensacine.com/cines/cines-en-72480/',
-            'https://www.sensacine.com/cines/cines-en-72480/?page=2', 'https://www.sensacine.com/cines/cines-en-72480/?page=3']
-
-    elements: list[Any] = []
-    for i in range(3):
-        contingut = requests.get(webs[i]).content
-        soup = BeautifulSoup(contingut, 'lxml')
-        elements += (soup.find_all('div', class_='item_resa'))
-
-    cinemes = llista_cinema(elements)
-    films = llista_films(elements)
-    projections = llista_projeccions(elements)
-
-    return Billboard(films, cinemes, projections)
-
-
-def cinemes() -> dict[str, Cinema]:
-    """Llista que recull les dades dels cinemes de Barcelona i les retorna com a diccionari amb el nom del cinema i el tipus Cinema."""
-    cinemes: dict[str, Cinema] = dict()
-    cinemes['Arenas Multicines 3D'] = Cinema(
-        'Arenas Multicines 3D', 'Gran Via de les Corts Catalanes, 385, 08015 Barcelona', (2.1493046396153845, 41.3762958))
-    cinemes['Aribau Multicines'] = Cinema(
-        'Aribau Multicines', 'Calle Aribau, 8, 08011 Barcelona', (2.162393, 41.386218))
-    cinemes['Bosque Multicines'] = Cinema(
-        'Bosque Multicines', 'Rambla de Prat 16, 08012 Barcelona', (2.1516103914622153, 41.401519050000005))
-    cinemes['Cinema Comedia'] = Cinema(
-        'Cinema Comedia', 'Passeig de Gracia, 13, 08007 Barcelona', (2.167663, 41.389718))
-    cinemes['Cinemes Girona'] = Cinema(
-        'Cinemes Girona', 'Carrer de Girona 173-175, 08025 Barcelona', (2.1642872, 41.399941))
-    cinemes['Cines Verdi Barcelona'] = Cinema(
-        'Cines Verdi Barcelona', 'Calle Verdi, 32, 08012 Barcelona', (2.156800, 41.403920))
-    cinemes['Cinesa Diagonal 3D'] = Cinema(
-        'Cinesa Diagonal 3D', 'Santa Fe de Nou Mèxic s/n, 08017 Barcelona', (2.136119, 41.393731))
-    cinemes['Cinesa Diagonal Mar 18'] = Cinema(
-        'Cinesa Diagonal Mar 18', 'Avinguda Diagonal, 3, 08019 Barcelona', (2.2172596, 41.4101085))
-    cinemes['Cinesa La Maquinista 3D'] = Cinema(
-        'Cinesa La Maquinista 3D', 'Passeig Potosí 2 - Centre Comercial La Maquinista, 08030 Barcelona', (2.198340, 41.439119))
-    cinemes['Cinesa SOM Multiespai'] = Cinema(
-        'Cinesa SOM Multiespai', 'Paseo Andreu Nin s/n - Pintor Alzamora, 08016 Barcelona', (2.180063, 41.435624))
-    cinemes['Glòries Multicines'] = Cinema(
-        'Glòries Multicines', 'Avinguda Diagonal, 208, 08018 Barcelona', (2.1928801, 41.4053714))
-    cinemes['Gran Sarrià Multicines'] = Cinema(
-        'Gran Sarrià Multicines', 'General Mitre, 38-44, 08017 Barcelona', (2.1340682, 41.3991688))
-    cinemes['Maldá Arts Forum'] = Cinema(
-        'Maldà Arts Forum', 'Carrer del Pi, 5, 08002 Barcelona', (2.1739003, 41.3832363))
-    cinemes['Renoir Floridablanca'] = Cinema(
-        'Renoir Floridablanca', 'Calle Floridablanca, 135, 08011 Barcelona', (2.162713, 41.381718))
-    cinemes['Sala Phenomena Experience'] = Cinema(
-        'Sala Phenomena Experience', 'C/ Sant Antoni Maria Claret, 168, 08041 Barcelona', (2.2894702, 41.5982715))
-    cinemes['Yelmo Cines Icaria 3D'] = Cinema(
-        'Yelmo Cines Icaria 3D', 'Calle Salvador Espriu, 61, 08005 Barcelona', (2.197470, 41.390225))
-    cinemes['Boliche Cinemes'] = Cinema(
-        'Boliche Cinemes', 'Avinguda Diagonal, 508, 08006 Barcelona', (2.1536309, 41.3952918))
-    cinemes['Zumzeig Cinema'] = Cinema(
-        'Zumzeig Cinema', 'Carrer Béjar, 53, 8014 Barcelona', (2.1450266, 41.3773203))
-    cinemes['Balmes Multicines'] = Cinema(
-        'Balmes Multicines', 'Calle Balmes, 422-424, 08022 Barcelona', (1.7241557, 41.2202618))
-    cinemes['Cinesa La Farga 3D'] = Cinema(
-        'Cinesa La Farga 3D', 'Avinguda Josep Tarradellas 145, 08901 L\'Hospitalet de Llobregat', (2.143663, 41.391084))
-    cinemes['Filmax Gran Via 3D'] = Cinema(
-        'Filmax Gran Via 3D', 'Avinguda Gran Via 75 - Centre Comercial Gran Via 2, 08908 L\'Hospitalet de Llobregat', (2.128130, 41.358786))
-    cinemes['Full HD Cinemes Centre Splau'] = Cinema(
-        'Full HD Cinemes Centre Splau', 'Centre Comercial Splau! - Avinguda Baix LLobregat, 08940 Cornella De Llobregat', (2.077846, 41.347255))
-    cinemes['Cine Capri'] = Cinema(
-        'Cine Capri', 'Avinguda Virgen Montserrat, 111, 08820 Prat De Llobregat', (2.095167, 41.325762))
-    cinemes['Ocine Màgic'] = Cinema(
-        'Ocine Màgic', 'Carrer de la concòrdia, 1, 08917 Badalona', (2.229622, 41.442599))
-    cinemes['Cinebaix'] = Cinema(
-        'Cinebaix', 'Joan Batllori, 21, 08980 Sant Feliu De Llobregat', (2.0448757, 41.3819167))
-    cinemes['Cinemes Can Castellet'] = Cinema(
-        'Cinemes Can Castellet', 'Calle Jaume I, 32, 08830 Sant Boi De Llobregat', (2.040618, 41.345130))
-    cinemes['Cinemes Sant Cugat'] = Cinema(
-        'Cinemes Sant Cugat', 'Centre Cultural Sant Cugat - Avda. Pla del Vinyet s/n, 08190 Sant Cugat Del Vallès', (2.090266, 41.469601))
-    cinemes['Cines Montcada'] = Cinema(
-        'Cines Montcada', 'Calle Verdi, 2, 08110 Montcada', (2.180340, 41.494098))
-    cinemes['Yelmo Cines Baricentro'] = Cinema(
-        'Yelmo Cines Baricentro', 'N-150, km 6, 08210 Barcelona', (2.137576, 41.507579))
-    cinemes['Yelmo Cines Sant Cugat'] = Cinema(
-        'Yelmo Cines Sant Cugat', 'Avinguda Via Augusta, 2, 08174 Sant Cugat del Vallès', (2.054289, 41.483465))
-    return cinemes
-
-
-def llista_cinema(elements: Any) -> list[Cinema]:
-    """Donat un fitxer html que conté els elements dels cinemes en retorna una llista d'ells."""
-    cinema: dict[str, Cinema] = dict()
-    cines = cinemes()
-    for element in elements:
-
-        content = str(element)
-        match = re.search(r'data-theater=\'(.*?)\'', content)
-        if match:
-            theater_data = match.group(1)
-            theater_list = json.loads(theater_data)
-
-            cinema[theater_list['name']] = cines[theater_list['name']]
-    return list(cinema.values())
-
-
-def llista_films(elements: Any) -> list[Film]:
-    """Donat un fitxer html que conté els elements de les pel·licules en retorna una llista d'ells."""
-    films: dict[str, Film] = dict()
-    for element in elements:
-        content = str(element)
-        match = re.search(r'data-movie=\'(.*?)\'', content)
-        if match:
-            movie_data = match.group(1)
-            movie_list = json.loads(movie_data)
-
-            films[movie_list['id']] = Film(movie_list)
-
-    return list(films.values())
-
-
-def llista_projeccions(elements: Any) -> list[Projection]:
-    """Donat un fitxer html que conté els elements de les projeccions en retorna una llista d'ells."""
-    projections: list[Projection] = list()
-    repetits: dict[str, set[str]] = dict()
-    for element in elements:
-
-        content = str(element)
-        # Utilitza expressió regular per trobar els valors de l'atribut
-        # data-times
-        match2 = re.search(r'data-theater=\'(.*?)\'', content)
-        if match2:
-            theater_data = match2.group(1)
-            theater_list = json.loads(theater_data)
-            cinema = cinemes()[theater_list['name']]
-
-        match3 = re.search(r'data-movie=\'(.*?)\'', content)
-        if match3:
-            movie_data = match3.group(1)
-            movie_list = json.loads(movie_data)
-            film = Film(movie_list)
-
-        ul_element = element.find('ul', class_='list_hours')
-        em_elements = ul_element.find_all('em')
-        data_times = [em.get('data-times') for em in em_elements]
-        for dt in data_times:
-            time = int(dt[2] + dt[3]), int(dt[5] + dt[6])
-            if match2 and match3:
-                if cinema.name in repetits:
-                    if film.title in repetits[cinema.name]:
-                        # if time in repetits[cinema.name][film.title]:
-                        break
-                        # else:
-                        # repetits[cinema.name][film.title].add(time)
                 else:
-                    repetits[cinema.name] = set()
-                projections.append(Projection(film, cinema, time))
-        repetits[cinema.name].add(film.title)
-    return list(projections)
+                    clear()
+                    film = sessions[0].film()
+                    console.print("Projeccions de", film.title)
+                    console.print("Gèneres:", *film.genre)
+                    console.print("Actors i actrius:", *film.actors)
+                    console.print("Director/s:", *film.director)
+                    console.print()
+                    escriu_cartellera(sessions)
+
+            elif cerca == '2':
+                sessions = cerca_cinema(cartellera)
+                if not len(sessions):
+                    text = Text.assemble(("Vaja! ", "red"), "El cinema que has introduit no es troba a la cartellera. ",  (
+                        "Assegura't d'escriure'n un que hi sigui o fixa't en si l'has escrit bé.", "cyan"))
+                    console.print(text)
+                else:      
+                    clear()
+                    cine = sessions[0].cinema()
+                    console.print("Projeccions a", cine.name)
+                    console.print("Adressa:", cine.address)
+                    console.print()
+                    escriu_cartellera(sessions)
+
+            elif cerca == '3':
+                sessions = cerca_horari(cartellera)
+                if not len(sessions):
+                    text = Text.assemble(
+                        ("Vaja! ", "red"), "No hi ha cap pel·lícula programada per aquesta hora o no l'has escrit correctament.")
+                    console.print(text)
+                else:
+                    clear()
+                    hora = sessions[0].time()
+                    console.print("Projeccions a les", f"{hora[0]:02d}:{hora[1]:02d}")
+                    console.print()                    
+                    escriu_cartellera(sessions)
+
+            elif cerca == '4':
+                combos = ["1. Pel·lícula", "2. Cinema", "3. Horari"]
+                taula = Table()
+                taula.add_column('Combinacions')
+                for combo in combos:
+                    taula.add_row(combo, style='green4')
+                console.print(taula)
+                console.print(
+                    "Escull els dos paràmetres amb els que vols cercar. ", end='')
+                try:
+                    x, y = yogi.read(int), yogi.read(int)
+                    clear()
+                    if x == 1:
+                        sessions = cerca_pelicula(cartellera)
+                        combinacio = combina(sessions, y)
+                        film = combinacio[0].film()
+                        if len(combinacio):
+                            console.print("Projeccions de", film.title)
+                            console.print("Gèneres:", *film.genre)
+                            console.print("Actors i actrius:", *film.actors)
+                            console.print("Director/s:", *film.director)
+                            console.print()
+                            
+                    elif x == 2:
+                        sessions = cerca_cinema(cartellera)
+                        combinacio = combina(sessions, y)
+                        if len(combinacio):
+                            console.print("Projeccions a", combinacio[0].cinema().name)
+                            console.print("Adressa:", combinacio[0].cinema().address)
+                            console.print()
+                    
+                    elif x == 3:
+                        sessions = cerca_horari(cartellera)
+                        combinacio = combina(sessions, y)
+                        if len(combinacio):
+                            hora = combinacio[0].time()
+                            console.print("Projeccions a les", f"{hora[0]:02d}:{hora[1]:02d}")
+                            console.print()                    
+                
+                    else:
+                        console.print("Opció no vàlida", style="purple4")
+                    if len(combinacio):
+                            escriu_cartellera(combinacio)
+                    else:
+                        text = Text.assemble(
+                        ("Vaja! ", "red"), "No hi ha cap combinació amb els paràmetres donats.")
+                        console.print(text)
+                except: console.print("Opció no vàlida", style="purple4")
+                
+            elif cerca == '5':
+                console.print("Quin mot vols cercar? ", end='')
+                mot = input()
+                mots = cartellera.troba_mot(mot)
+                if len(mots): 
+                    clear()
+                    console.print("Pel·icules amb el mot", mot, style='deep_pink3')
+                    escriu_cartellera(mots)
+                else:
+                    text = Text.assemble(
+                        ("Vaja! ", "red"), "No hi ha cap pel·lícula o cinema amb el mot escrit.")
+                    console.print(text)
+            elif cerca == '6':
+                taula = Table()
+                generes = ['Acción', 'Animación', 'Aventura', 'Biografía', 'Ciencia ficción', 'Comedia', 'Comedia dramática', 'Comedia musical', 'Crimen', 'Documental', 'Drama', 'Familia', 'Fantasía', 'Guerra', 'Histórico', 'Judicial', 'Musical', 'Romántico', 'Suspense', 'Terror', 'Western']
+                taula.add_column("Gèneres")
+                for genre in generes:
+                    taula.add_row(genre, style='medium_purple2')
+                console.print(taula)
+                console.print(
+                    "Quin gènere vols cercar? Escrit en castellà. ", end='')
+                mot = input()
+                mots = cartellera.troba_genere(mot)
+                if len(mots):
+                    clear()
+                    console.print("Pel·icules amb el gènere", mot, style='deep_pink3')
+                    console.print()
+                    escriu_cartellera(mots)
+                else:
+                    text = Text.assemble(
+                        ("Vaja! ", "red"), "No hi ha cap pel·lícula amb el gènere escrit o no s'ha escrit correctament.")
+                    console.print(text)
+            elif cerca == '7':
+                console.print("Quin actor vols cercar? ", end='')
+                mot = input()
+                mots = cartellera.troba_actor(mot)
+                if len(mots): 
+                    clear()
+                    console.print("Pel·icules amb l'actor o actriu", mot, style='deep_pink3')
+                    console.print()
+                    escriu_cartellera(mots)
+                else:
+                    text = Text.assemble(
+                        ("Vaja! ", "red"), "No hi ha cap pel·lícula amb el nom de l'actor que has escrit. Revisa haver-lo escrit correctament.")
+                    console.print(text)
+            elif cerca == '8':
+                console.print("Quin director vols cercar? ", end='')
+                mot = input()
+                mots = cartellera.troba_director(mot)
+                if len(mots): 
+                    clear()
+                    console.print("Pel·icules amb el director/a", mot, style='deep_pink3')
+                    console.print()
+                    escriu_cartellera(mots)
+                else:
+                    text = Text.assemble(
+                        ("Vaja! ", "red"), "No hi ha cap pel·lícula amb el nom del director que has escrit. Revisa haver-lo escrit correctament.")
+                    console.print(text)
+            else:
+                console.print("Opció no vàlida", style="purple4")
+        # mostrar el graf de busos.
+        elif opcio == '3':
+            try:
+                console.print("Carregant la imatge del graf de busos...")
+                show(g2)
+                clear()
+                console.print("Vols desar la imatge amb el mapa dels busos en un fitxer? ", end='')
+                console.print("1. Sí", "2. No", end='\n')
+                n = input()
+                if n == '1':
+                    plot(g2, "graf_busos.png")
+            except:
+                console.print("Alguna cosa no ha funcionat com tocava. Torna-ho a intentar!")
+        # mostrar el graf de ciutat.
+        elif opcio == '4':
+            try:
+                console.print("Carregant la imatge del graf de la ciutat...")
+                show(city)
+                clear()
+                console.print("Vols desar la imatge amb el mapa de la ciutat en un fitxer? ", end='')
+                console.print("1. Sí", "2. No", end='\n')
+                n = input()
+                if n == '1':
+                    plot(city, "graf_barcelona.png")
+            except:
+                console.print("Alguna cosa no ha funcionat com tocava. Torna-ho a intentar!")
+        # # mostrar el camí per anar a veure una pel·lícula desitjada des d'un lloc donat en un moment donat. De totes les projeccions possibles cal mostrar el camí per arribar a la que comenci abans (i que s'hi pugui arribar a temps a peu i en bús).
+        elif opcio == '5':
+            geolocator = Nominatim(user_agent="geocoder_ap2")
+            sessions = cerca_pelicula(cartellera)
+            clear()
+            if not len(sessions):
+                text = Text.assemble(
+                ("Vaja! ", "red"), "La pel·lícula que has introduit no es troba a la cartellera. Consulta-la.")
+                console.print(text)
+                continue
+            escriu_cartellera(list(sessions))
+            console.print("Escriu a quin cinema vols anar.")
+            cine = input()
+            sessions2 = combina(sessions, 2, cine)
+            if not len(sessions2):
+                text = Text.assemble(
+                ("Vaja! ", "red"), "No hi ha cap coincidència entre el cinema i pel·lícula que has escollit o potser no has escrit bé el nom del cinema. Revisa haver-lo escrit correctament.")
+                console.print(text)
+                continue
+            clear()
+            escriu_cartellera(list(sessions2))
+            console.print("Des de quina adressa de Barcelona vols sortir?")
+            adressa = input()
+            coordenades : Coord = geolocator.geocode(adressa)
+            if coordenades is not None:
+                clear()
+                try: 
+                    console.print("Creant camí des de", adressa, "fins a", cinemes()[cine].address)
+            
+                    lat, lon = coordenades.latitude, coordenades.longitude
+                    cami = find_path(g1, city, (lon, lat), cinemes()[cine].coordenades)
+                    console.print(len(cami))
+                    t = total_time_path(cami)
+                    console.print(F"El temps de durada del recorregut és de {t} minuts")
+                    #if arriba:
+                        #console.print("Arribes a la funció de les {funcio}, has de partir màxim a les {hora}")
+                    #else:
+                        #console.print("No tens temps d'arribar a la funcio. Canvia de película.")
+                    plot_path(city, cami, "cami_cinema.png")
+                except: 
+                    text = Text.assemble(
+                    ("Vaja! ", "red"), "Alguna cosa no ha anat bé. Torna a provar-ho.")
+                    console.print(text)
+            else:
+                text = Text.assemble(
+                ("Vaja! ", "red"), "El programa no és capaç de trobar coordenades per la teva adressa. Prova d'escriure-la més extensament, afegint codi postal o ciutat.")
+                console.print(text)
+                
+            
+
+        elif opcio == '6':
+            console.print("Aleix Albaiges Torres i Gabriel Fortuny Carretero")
+            
+        elif opcio == '7':
+            break
+
+        else:
+            console.print("Opció no vàlida", style="purple4")
+        
+    console.print("Adéu! Gràcies per visitar el nostre projecte. Aleix i Gabriel", style='magenta3')
+
+
+def cerca_horari(cartellera: Billboard) -> list[Projection]:
+    """Donada la cartellera es retorna la llista de projeccions a l'hora que es demana."""
+    console = Console()
+    console.print(
+        "A quina Hora vols anar al cine? Escriu l'hora en punt. ", end='')
+    try: pel = yogi.read(int)
+    except: return list()
+    sessions = [x for x in cartellera.projections() if pel == x.time()[0]]
+    return sessions
+
+
+def cerca_pelicula(cartellera: Billboard) -> list[Projection]:
+    """Donada la cartellera es retorna la llista de projeccions de la pel·licula que es demana."""
+    console = Console()
+    console.print("Quina Pel·licula vols cercar? ", end='')
+    pel = input()
+
+    sessions: list[Projection] = list()
+    sessions = [x for x in cartellera.projections() if pel == x.film().title]
+    return sessions
+
+
+def combina(sessions: list[Projection], y: int, cine: str = '') -> list[Projection]:
+    """Donades les sessions ja condicionades per un paràmetre, se les redueix al segon paràmetre i es retorna una llista de projeccions que compleixen ambdues restriccions."""
+    console = Console()
+    if y == 1:
+        console.print("Quina Pel·licula vols cercar? ", end='')
+        pel = input()
+        combinacio = [
+            x for x in sessions if x.film().title == pel]
+        return combinacio
+    elif y == 2:
+        
+        if cine == '':
+            console.print("A quin Cinema vols anar? ", end='')
+            cine = input()
+        combinacio = [
+            x for x in sessions if x.cinema().name == cine]
+        return combinacio
+    elif y == 3:
+        console.print(
+            "A quina Hora vols anar al cine? Escriu l'hora en punt. ", end='')
+        pel = yogi.read(int)
+        combinacio = [x for x in sessions if x.time()[
+            0] == pel]
+        return combinacio
+    else:
+        console.print("Opció no vàlida", style="purple4")
+        return list()
+
+
+def cerca_cinema(cartellera: Billboard) -> list[Projection]:
+    """Donada la cartellera es retorna la llista de projeccions que es duen a terme al cinema que es demana."""
+    console = Console()
+    console.print("A quin Cinema vols anar? ", end='')
+    cine = input()
+
+    sessions: list[Projection] = list()
+    sessions = [x for x in cartellera.projections() if cine == x.cinema().name]
+
+    return sessions
+
+
+def escriu_cartellera(projeccions: list[Projection]) -> None:
+    """Donada una llista de projeccions s'escriu en una taula del modul rich les sessions amb els elements: Titol, Cinema, Hora."""
+    if len(projeccions):
+        sort_hora(projeccions)
+        console = Console()
+        taula = Table(title="Cartellera de Barcelona")
+        taula.add_column("Pel·lícula")
+        taula.add_column("Cinema")
+        taula.add_column("Hora")
+        for projeccio in projeccions:
+            taula.add_row(Text.assemble((projeccio.film().title, "cornflower_blue")), Text.assemble((projeccio.cinema(
+            ).name, "aquamarine3")), Text.assemble((f"{projeccio.time()[0]:02d}:{projeccio.time()[1]:02d}", "sea_green2")))
+
+    console.print(taula)
+
+ 
+def clear():
+    # Determina el sistema operatiu actual
+    if os.name == "posix":  # Unix/Linux/MacOS
+        os.system("clear")
+    elif os.name == "nt":  # Windows
+        os.system("cls")
+
+
+if __name__ == '__main__':
+    main()
