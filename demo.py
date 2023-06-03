@@ -14,7 +14,10 @@ def main() -> None:
                   style="bold", highlight=True)
 
     cartellera = read()
-    
+    g1 = get_osmnx_graph()
+    g2 = get_buses_graph()
+    city = build_city_graph(g1, g2)
+            
     instruccions = [ "1. Mostra el contingut de la cartellera",
         "2. Cerca a la cartellera",
         "3. Crea i mostra el graf de busos",
@@ -26,7 +29,7 @@ def main() -> None:
     
     while True:
         taula = Table()
-        taula.add_column("Opcions", style='grey82')
+        taula.add_column("Opcions", style='red')
         for inst in instruccions:
             taula.add_row(inst, style='bright_white bold')
         console.print(taula)
@@ -55,7 +58,6 @@ def main() -> None:
                     console.print(text)
 
                 else:
-                    sort_hora(sessions)
                     clear()
                     film = sessions[0].film()
                     console.print("Projeccions de", film.title)
@@ -71,8 +73,7 @@ def main() -> None:
                     text = Text.assemble(("Vaja! ", "red"), "El cinema que has introduit no es troba a la cartellera. ",  (
                         "Assegura't d'escriure'n un que hi sigui o fixa't en si l'has escrit bé.", "cyan"))
                     console.print(text)
-                else:
-                    sort_hora(sessions)        
+                else:      
                     clear()
                     cine = sessions[0].cinema()
                     console.print("Projeccions a", cine.name)
@@ -87,7 +88,6 @@ def main() -> None:
                         ("Vaja! ", "red"), "No hi ha cap pel·lícula programada per aquesta hora o no l'has escrit correctament.")
                     console.print(text)
                 else:
-                    sort_hora(sessions)
                     clear()
                     hora = sessions[0].time()
                     console.print("Projeccions a les", f"{hora[0]:02d}:{hora[1]:02d}")
@@ -96,7 +96,8 @@ def main() -> None:
 
             elif cerca == '4':
                 combos = ["1. Pel·lícula", "2. Cinema", "3. Horari"]
-                taula = Table(title='Combinacions')
+                taula = Table()
+                taula.add_column('Combinacions')
                 for combo in combos:
                     taula.add_row(combo, style='green4')
                 console.print(taula)
@@ -108,45 +109,67 @@ def main() -> None:
                     if x == 1:
                         sessions = cerca_pelicula(cartellera)
                         combinacio = combina(sessions, y)
-                        escriu_cartellera(combinacio)
-
+                        film = combinacio[0].film()
+                        if len(combinacio):
+                            console.print("Projeccions de", film.title)
+                            console.print("Gèneres:", *film.genre)
+                            console.print("Actors i actrius:", *film.actors)
+                            console.print("Director/s:", *film.director)
+                            console.print()
+                            
                     elif x == 2:
                         sessions = cerca_cinema(cartellera)
                         combinacio = combina(sessions, y)
-                        escriu_cartellera(combinacio)
+                        if len(combinacio):
+                            console.print("Projeccions a", combinacio[0].cinema().name)
+                            console.print("Adressa:", combinacio[0].cinema().address)
+                            console.print()
+                    
                     elif x == 3:
                         sessions = cerca_horari(cartellera)
                         combinacio = combina(sessions, y)
-                        escriu_cartellera(combinacio)
+                        if len(combinacio):
+                            hora = combinacio[0].time()
+                            console.print("Projeccions a les", f"{hora[0]:02d}:{hora[1]:02d}")
+                            console.print()                    
+                
                     else:
                         console.print("Opció no vàlida", style="purple4")
+                    if len(combinacio):
+                            escriu_cartellera(combinacio)
+                    else:
+                        text = Text.assemble(
+                        ("Vaja! ", "red"), "No hi ha cap combinació amb els paràmetres donats.")
+                        console.print(text)
                 except: console.print("Opció no vàlida", style="purple4")
                 
             elif cerca == '5':
                 console.print("Quin mot vols cercar? ", end='')
                 mot = input()
                 mots = cartellera.troba_mot(mot)
-                sort_hora(mots)
                 if len(mots): 
                     clear()
+                    console.print("Pel·icules amb el mot", mot, style='deep_pink3')
                     escriu_cartellera(mots)
                 else:
                     text = Text.assemble(
                         ("Vaja! ", "red"), "No hi ha cap pel·lícula o cinema amb el mot escrit.")
                     console.print(text)
             elif cerca == '6':
-                taula = Table(title="Gèneres")
+                taula = Table()
                 generes = ['Acción', 'Animación', 'Aventura', 'Biografía', 'Ciencia ficción', 'Comedia', 'Comedia dramática', 'Comedia musical', 'Crimen', 'Documental', 'Drama', 'Familia', 'Fantasía', 'Guerra', 'Histórico', 'Judicial', 'Musical', 'Romántico', 'Suspense', 'Terror', 'Western']
+                taula.add_column("Gèneres")
                 for genre in generes:
                     taula.add_row(genre, style='medium_purple2')
                 console.print(taula)
                 console.print(
-                    "Quin gènere vols cercar? Escrit en castellà.", end='')
+                    "Quin gènere vols cercar? Escrit en castellà. ", end='')
                 mot = input()
                 mots = cartellera.troba_genere(mot)
-                sort_hora(mots)
                 if len(mots):
                     clear()
+                    console.print("Pel·icules amb el gènere", mot, style='deep_pink3')
+                    console.print()
                     escriu_cartellera(mots)
                 else:
                     text = Text.assemble(
@@ -156,9 +179,10 @@ def main() -> None:
                 console.print("Quin actor vols cercar? ", end='')
                 mot = input()
                 mots = cartellera.troba_actor(mot)
-                sort_hora(mots)
                 if len(mots): 
                     clear()
+                    console.print("Pel·icules amb l'actor o actriu", mot, style='deep_pink3')
+                    console.print()
                     escriu_cartellera(mots)
                 else:
                     text = Text.assemble(
@@ -168,9 +192,10 @@ def main() -> None:
                 console.print("Quin director vols cercar? ", end='')
                 mot = input()
                 mots = cartellera.troba_director(mot)
-                sort_hora(mots)
                 if len(mots): 
                     clear()
+                    console.print("Pel·icules amb el director/a", mot, style='deep_pink3')
+                    console.print()
                     escriu_cartellera(mots)
                 else:
                     text = Text.assemble(
@@ -180,38 +205,49 @@ def main() -> None:
                 console.print("Opció no vàlida", style="purple4")
         # mostrar el graf de busos.
         elif opcio == '3':
-            busos = get_buses_graph()
-            show(busos)
-            clear()
-            console.print("Vols desar la imatge amb el mapa dels busos en un fitxer? ", end='')
-            console.print("1. Sí", "2. No", end='\n')
-            n = input()
-            if n == '1':
-                plot(busos, "graf_busos.png")
+            try:
+                console.print("Carregant la imatge del graf de busos...")
+                show(g2)
+                clear()
+                console.print("Vols desar la imatge amb el mapa dels busos en un fitxer? ", end='')
+                console.print("1. Sí", "2. No", end='\n')
+                n = input()
+                if n == '1':
+                    plot(g2, "graf_busos.png")
+            except:
+                console.print("Alguna cosa no ha funcionat com tocava. Torna-ho a intentar!")
         # mostrar el graf de ciutat.
         elif opcio == '4':
-            g1 = get_osmnx_graph()
-            g2 = get_buses_graph()
-            city = build_city_graph(g1, g2)
-            show(city)
-            clear()
-            console.print("Vols desar la imatge amb el mapa de la ciutat en un fitxer? ", end='')
-            console.print("1. Sí", "2. No", end='\n')
-            n = input()
-            if n == '1':
-                plot(city, "graf_barcelona.png")
+            try:
+                console.print("Carregant la imatge del graf de la ciutat...")
+                show(city)
+                clear()
+                console.print("Vols desar la imatge amb el mapa de la ciutat en un fitxer? ", end='')
+                console.print("1. Sí", "2. No", end='\n')
+                n = input()
+                if n == '1':
+                    plot(city, "graf_barcelona.png")
+            except:
+                console.print("Alguna cosa no ha funcionat com tocava. Torna-ho a intentar!")
         # # mostrar el camí per anar a veure una pel·lícula desitjada des d'un lloc donat en un moment donat. De totes les projeccions possibles cal mostrar el camí per arribar a la que comenci abans (i que s'hi pugui arribar a temps a peu i en bús).
         elif opcio == '5':
             geolocator = Nominatim(user_agent="geocoder_ap2")
-            g1 = get_osmnx_graph()
-            g2 = get_buses_graph()
-            city = build_city_graph(g1, g2)
             sessions = cerca_pelicula(cartellera)
             clear()
+            if not len(sessions):
+                text = Text.assemble(
+                ("Vaja! ", "red"), "La pel·lícula que has introduit no es troba a la cartellera. Consulta-la.")
+                console.print(text)
+                continue
             escriu_cartellera(list(sessions))
             console.print("Escriu a quin cinema vols anar.")
             cine = input()
             sessions2 = combina(sessions, 2, cine)
+            if not len(sessions2):
+                text = Text.assemble(
+                ("Vaja! ", "red"), "No hi ha cap coincidència entre el cinema i pel·lícula que has escollit o potser no has escrit bé el nom del cinema. Revisa haver-lo escrit correctament.")
+                console.print(text)
+                continue
             clear()
             escriu_cartellera(list(sessions2))
             console.print("Des de quina adressa de Barcelona vols sortir?")
@@ -219,16 +255,29 @@ def main() -> None:
             coordenades : Coord = geolocator.geocode(adressa)
             if coordenades is not None:
                 clear()
-                lat, lon = coordenades.latitude, coordenades.longitude
-                console.print("Creant camí des de", adressa, "fins a", cinemes()[cine].address)
-                cami = find_path(g1, city, (lon, lat), cinemes()[cine].coordenades)
-                clear()
-                console.print(F"El temps de durada del recorregut és de ")#{x} minuts")
-                #if arriba:
-                    #console.print("Arribes a la funció de les {funcio}, has de partir màxim a les {hora}")
-                #else:
-                    #console.print("No tens temps d'arribar a la funcio. Canvia de película.")
-                plot_path(city, cami, "cami_cinema.png")
+                try: 
+                    console.print("Creant camí des de", adressa, "fins a", cinemes()[cine].address)
+            
+                    lat, lon = coordenades.latitude, coordenades.longitude
+                    cami = find_path(g1, city, (lon, lat), cinemes()[cine].coordenades)
+                    console.print(len(cami))
+                    t = total_time_path(cami)
+                    console.print(F"El temps de durada del recorregut és de {t} minuts")
+                    #if arriba:
+                        #console.print("Arribes a la funció de les {funcio}, has de partir màxim a les {hora}")
+                    #else:
+                        #console.print("No tens temps d'arribar a la funcio. Canvia de película.")
+                    plot_path(city, cami, "cami_cinema.png")
+                except: 
+                    text = Text.assemble(
+                    ("Vaja! ", "red"), "Alguna cosa no ha anat bé. Torna a provar-ho.")
+                    console.print(text)
+            else:
+                text = Text.assemble(
+                ("Vaja! ", "red"), "El programa no és capaç de trobar coordenades per la teva adressa. Prova d'escriure-la més extensament, afegint codi postal o ciutat.")
+                console.print(text)
+                
+            
 
         elif opcio == '6':
             console.print("Aleix Albaiges Torres i Gabriel Fortuny Carretero")
@@ -247,8 +296,8 @@ def cerca_horari(cartellera: Billboard) -> list[Projection]:
     console = Console()
     console.print(
         "A quina Hora vols anar al cine? Escriu l'hora en punt. ", end='')
-    pel = yogi.read(int)
-
+    try: pel = yogi.read(int)
+    except: return list()
     sessions = [x for x in cartellera.projections() if pel == x.time()[0]]
     return sessions
 
@@ -272,7 +321,6 @@ def combina(sessions: list[Projection], y: int, cine: str = '') -> list[Projecti
         pel = input()
         combinacio = [
             x for x in sessions if x.film().title == pel]
-        sort_hora(combinacio)
         return combinacio
     elif y == 2:
         
@@ -281,7 +329,6 @@ def combina(sessions: list[Projection], y: int, cine: str = '') -> list[Projecti
             cine = input()
         combinacio = [
             x for x in sessions if x.cinema().name == cine]
-        sort_hora(combinacio)
         return combinacio
     elif y == 3:
         console.print(
@@ -289,7 +336,6 @@ def combina(sessions: list[Projection], y: int, cine: str = '') -> list[Projecti
         pel = yogi.read(int)
         combinacio = [x for x in sessions if x.time()[
             0] == pel]
-        sort_hora(combinacio)
         return combinacio
     else:
         console.print("Opció no vàlida", style="purple4")
@@ -311,6 +357,7 @@ def cerca_cinema(cartellera: Billboard) -> list[Projection]:
 def escriu_cartellera(projeccions: list[Projection]) -> None:
     """Donada una llista de projeccions s'escriu en una taula del modul rich les sessions amb els elements: Titol, Cinema, Hora."""
     if len(projeccions):
+        sort_hora(projeccions)
         console = Console()
         taula = Table(title="Cartellera de Barcelona")
         taula.add_column("Pel·lícula")
