@@ -127,6 +127,8 @@ def read() -> Billboard:
         elements += (soup.find_all('div', class_='item_resa'))
 
     cinemes = llista_cinema(elements)
+    for cine in cinemes:
+        print(cine.name)
     films = llista_films(elements)
     projections = llista_projeccions(elements)
 
@@ -137,7 +139,7 @@ def cinemes() -> dict[str, Cinema]:
     """Llista que recull les dades dels cinemes de Barcelona i les retorna com a diccionari amb el nom del cinema i el tipus Cinema."""
     cinemes: dict[str, Cinema] = dict()
     cinemes['Arenas Multicines 3D'] = Cinema(
-        'Arenas Multicines 3D', 'Gran Via de les Corts Catalanes, 385, 08015 Barcelona', (2.1493046396153845, 41.3762958))
+        'Arenas Multicines 3D', 'Gran Via de les Corts Catalanes, 385, 08015 Barcelona', (2.149546, 41.376047))
     cinemes['Aribau Multicines'] = Cinema(
         'Aribau Multicines', 'Calle Aribau, 8, 08011 Barcelona', (2.162393, 41.386218))
     cinemes['Bosque Multicines'] = Cinema(
@@ -160,42 +162,44 @@ def cinemes() -> dict[str, Cinema]:
         'Glòries Multicines', 'Avinguda Diagonal, 208, 08018 Barcelona', (2.1928801, 41.4053714))
     cinemes['Gran Sarrià Multicines'] = Cinema(
         'Gran Sarrià Multicines', 'General Mitre, 38-44, 08017 Barcelona', (2.1340682, 41.3991688))
-    cinemes['Maldá Arts Forum'] = Cinema(
+    cinemes['Maldà Arts Forum'] = Cinema(
         'Maldà Arts Forum', 'Carrer del Pi, 5, 08002 Barcelona', (2.1739003, 41.3832363))
     cinemes['Renoir Floridablanca'] = Cinema(
         'Renoir Floridablanca', 'Calle Floridablanca, 135, 08011 Barcelona', (2.162713, 41.381718))
     cinemes['Sala Phenomena Experience'] = Cinema(
-        'Sala Phenomena Experience', 'C/ Sant Antoni Maria Claret, 168, 08041 Barcelona', (2.2894702, 41.5982715))
+        'Sala Phenomena Experience', 'C/ Sant Antoni Maria Claret, 168, 08025 Barcelona', (2.171631, 41.408865))
     cinemes['Yelmo Cines Icaria 3D'] = Cinema(
         'Yelmo Cines Icaria 3D', 'Calle Salvador Espriu, 61, 08005 Barcelona', (2.197470, 41.390225))
     cinemes['Boliche Cinemes'] = Cinema(
         'Boliche Cinemes', 'Avinguda Diagonal, 508, 08006 Barcelona', (2.1536309, 41.3952918))
     cinemes['Zumzeig Cinema'] = Cinema(
-        'Zumzeig Cinema', 'Carrer Béjar, 53, 8014 Barcelona', (2.1450266, 41.3773203))
+        'Zumzeig Cinema', 'Carrer Béjar, 53, 08014 Barcelona', (2.1450266, 41.3773203))
     cinemes['Balmes Multicines'] = Cinema(
         'Balmes Multicines', 'Calle Balmes, 422-424, 08022 Barcelona', (1.7241557, 41.2202618))
-    cinemes['Cinesa La Farga 3D'] = Cinema(
-        'Cinesa La Farga 3D', 'Avinguda Josep Tarradellas 145, 08901 L\'Hospitalet de Llobregat', (2.143663, 41.391084))
-    cinemes['Filmax Gran Via 3D'] = Cinema(
-        'Filmax Gran Via 3D', 'Avinguda Gran Via 75 - Centre Comercial Gran Via 2, 08908 L\'Hospitalet de Llobregat', (2.128130, 41.358786))
-    cinemes['Full HD Cinemes Centre Splau'] = Cinema(
-        'Full HD Cinemes Centre Splau', 'Centre Comercial Splau! - Avinguda Baix LLobregat, 08940 Cornella De Llobregat', (2.077846, 41.347255))
-    cinemes['Cine Capri'] = Cinema(
-        'Cine Capri', 'Avinguda Virgen Montserrat, 111, 08820 Prat De Llobregat', (2.095167, 41.325762))
-    cinemes['Ocine Màgic'] = Cinema(
-        'Ocine Màgic', 'Carrer de la concòrdia, 1, 08917 Badalona', (2.229622, 41.442599))
-    cinemes['Cinebaix'] = Cinema(
-        'Cinebaix', 'Joan Batllori, 21, 08980 Sant Feliu De Llobregat', (2.0448757, 41.3819167))
-    cinemes['Cinemes Can Castellet'] = Cinema(
-        'Cinemes Can Castellet', 'Calle Jaume I, 32, 08830 Sant Boi De Llobregat', (2.040618, 41.345130))
-    cinemes['Cinemes Sant Cugat'] = Cinema(
-        'Cinemes Sant Cugat', 'Centre Cultural Sant Cugat - Avda. Pla del Vinyet s/n, 08190 Sant Cugat Del Vallès', (2.090266, 41.469601))
-    cinemes['Cines Montcada'] = Cinema(
-        'Cines Montcada', 'Calle Verdi, 2, 08110 Montcada', (2.180340, 41.494098))
-    cinemes['Yelmo Cines Baricentro'] = Cinema(
-        'Yelmo Cines Baricentro', 'N-150, km 6, 08210 Barcelona', (2.137576, 41.507579))
-    cinemes['Yelmo Cines Sant Cugat'] = Cinema(
-        'Yelmo Cines Sant Cugat', 'Avinguda Via Augusta, 2, 08174 Sant Cugat del Vallès', (2.054289, 41.483465))
+    #cinemes['Cinesa La Farga 3D'] = Cinema( # No es troba a Barcelona-municipi
+    #    'Cinesa La Farga 3D', 'Avinguda Josep Tarradellas 145, 08901 L\'Hospitalet de Llobregat', (2.1043663, 41.362972))
+    cinemes['Maldá Arts Forum'] = Cinema(
+        'Maldà Arts Forum', 'Carrer del Pi, 5, 08002 Barcelona', (2.1739003, 41.3832363))
+    #cinemes['Filmax Gran Via 3D'] = Cinema( # No es troba a Barcelona-municipi
+    #    'Filmax Gran Via 3D', 'Avinguda Gran Via 75 - Centre Comercial Gran Via 2, 08908 L\'Hospitalet de Llobregat', (2.128130, 41.358786))
+    #cinemes['Full HD Cinemes Centre Splau'] = Cinema( # No es troba a Barcelona-municipi
+    #    'Full HD Cinemes Centre Splau', 'Centre Comercial Splau! - Avinguda Baix LLobregat, 08940 Cornella De Llobregat', (2.077846, 41.347255))
+    #cinemes['Cine Capri'] = Cinema( # No es troba a Barcelona-municipi
+    #    'Cine Capri', 'Avinguda Virgen Montserrat, 111, 08820 Prat De Llobregat', (2.095167, 41.325762))
+    #cinemes['Ocine Màgic'] = Cinema( # No es troba a Barcelona-municipi
+    #    'Ocine Màgic', 'Carrer de la concòrdia, 1, 08917 Badalona', (2.229622, 41.442599))
+    #cinemes['Cinebaix'] = Cinema( # No es troba a Barcelona-municipi
+    #    'Cinebaix', 'Joan Batllori, 21, 08980 Sant Feliu De Llobregat', (2.0448757, 41.3819167))
+    #cinemes['Cinemes Can Castellet'] = Cinema( # No es troba a Barcelona-municipi
+    #    'Cinemes Can Castellet', 'Calle Jaume I, 32, 08830 Sant Boi De Llobregat', (2.040618, 41.345130))
+    #cinemes['Cinemes Sant Cugat'] = Cinema(
+    #    'Cinemes Sant Cugat', 'Centre Cultural Sant Cugat - Avda. Pla del Vinyet s/n, 08190 Sant Cugat Del Vallès', (2.090266, 41.469601))
+    #cinemes['Cines Montcada'] = Cinema(
+    #    'Cines Montcada', 'Calle Verdi, 2, 08110 Montcada', (2.180340, 41.494098))
+    #cinemes['Yelmo Cines Baricentro'] = Cinema(
+    #    'Yelmo Cines Baricentro', 'N-150, km 6, 08210 Barcelona', (2.137576, 41.507579))
+    #cinemes['Yelmo Cines Sant Cugat'] = Cinema(
+    #    'Yelmo Cines Sant Cugat', 'Avinguda Via Augusta, 2, 08174 Sant Cugat del Vallès', (2.054289, 41.483465))
     return cinemes
 
 
@@ -210,8 +214,9 @@ def llista_cinema(elements: Any) -> list[Cinema]:
         if match:
             theater_data = match.group(1)
             theater_list = json.loads(theater_data)
-
-            cinema[theater_list['name']] = cines[theater_list['name']]
+            try:
+                cinema[theater_list['name']] = cines[theater_list['name']]
+            except: continue
     return list(cinema.values())
 
 
@@ -243,8 +248,8 @@ def llista_projeccions(elements: Any) -> list[Projection]:
         if match2:
             theater_data = match2.group(1)
             theater_list = json.loads(theater_data)
-            cinema = cinemes()[theater_list['name']]
-
+            try: cinema = cinemes()[theater_list['name']]
+            except: continue
         match3 = re.search(r'data-movie=\'(.*?)\'', content)
         if match3:
             movie_data = match3.group(1)
@@ -255,6 +260,8 @@ def llista_projeccions(elements: Any) -> list[Projection]:
         em_elements = ul_element.find_all('em')
         data_times = [em.get('data-times') for em in em_elements]
         for dt in data_times:
+            if cinema.name not in cinemes().keys():
+                break
             time = int(dt[2] + dt[3]), int(dt[5] + dt[6])
             if match2 and match3:
                 if cinema.name in repetits:
@@ -264,7 +271,7 @@ def llista_projeccions(elements: Any) -> list[Projection]:
                         # else:
                         # repetits[cinema.name][film.title].add(time)
                 else:
-                    repetits[cinema.name] = set()
+                        repetits[cinema.name] = set()
                 projections.append(Projection(film, cinema, time))
         repetits[cinema.name].add(film.title)
     return list(projections)
