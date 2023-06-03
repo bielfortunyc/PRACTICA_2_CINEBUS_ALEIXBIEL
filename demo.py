@@ -77,7 +77,7 @@ def main() -> None:
                     clear()
                     cine = sessions[0].cinema()
                     console.print("Projeccions a", cine.name)
-                    console.print("Adressa:", cine.address)
+                    console.print("Adreça:", cine.address)
                     console.print()
                     escriu_cartellera(sessions)
 
@@ -122,7 +122,7 @@ def main() -> None:
                         combinacio = combina(sessions, y)
                         if len(combinacio):
                             console.print("Projeccions a", combinacio[0].cinema().name)
-                            console.print("Adressa:", combinacio[0].cinema().address)
+                            console.print("Adreça:", combinacio[0].cinema().address)
                             console.print()
                     
                     elif x == 3:
@@ -250,19 +250,20 @@ def main() -> None:
                 continue
             clear()
             escriu_cartellera(list(sessions2))
-            console.print("Des de quina adressa de Barcelona vols sortir?")
-            adressa = input()
-            coordenades : Coord = geolocator.geocode(adressa)
+            console.print("Des de quina adreça de Barcelona vols sortir?")
+            adreça = input()
+            coordenades : Coord = geolocator.geocode(adreça)
             if coordenades is not None:
                 clear()
                 try: 
-                    console.print("Creant camí des de", adressa, "fins a", cinemes()[cine].address)
-            
+                    console.print("Creant camí des de", adreça, "fins a", cinemes()[cine].address)
                     lat, lon = coordenades.latitude, coordenades.longitude
+                    if lat < 41.36 or lat > 41.47 or lon > 2.22 or lon < 2.12:
+                        console.print("L'adreça que has introduit no es troba dins el municipi de Barcelona o no s'han pogut trobar les coordenades correctament. Prova-ho de nou afegint informació com el codi postal o el municipi. Disculpa!")
+                        continue
                     cami = find_path(g1, city, (lon, lat), cinemes()[cine].coordenades)
-                    console.print(len(cami))
                     t = total_time_path(cami)
-                    console.print(F"El temps de durada del recorregut és de {t} minuts")
+                    console.print(F"El temps de durada del recorregut és de {round(t/60)} minuts")
                     #if arriba:
                         #console.print("Arribes a la funció de les {funcio}, has de partir màxim a les {hora}")
                     #else:
@@ -274,7 +275,7 @@ def main() -> None:
                     console.print(text)
             else:
                 text = Text.assemble(
-                ("Vaja! ", "red"), "El programa no és capaç de trobar coordenades per la teva adressa. Prova d'escriure-la més extensament, afegint codi postal o ciutat.")
+                ("Vaja! ", "red"), "El programa no és capaç de trobar coordenades per la teva adreça. Prova d'escriure-la més extensament, afegint codi postal o ciutat.")
                 console.print(text)
                 
             
@@ -325,7 +326,7 @@ def combina(sessions: list[Projection], y: int, cine: str = '') -> list[Projecti
     elif y == 2:
         
         if cine == '':
-            console.print("A quin Cinema vols anar? ", end='')
+            console.print("A quin Cinema vols an7ar? ", end='')
             cine = input()
         combinacio = [
             x for x in sessions if x.cinema().name == cine]
