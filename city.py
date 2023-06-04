@@ -153,8 +153,8 @@ def find_path(ox_g: OsmnxGraph, g: CityGraph, src: Coord, dst: Coord) -> Path:
 
     """
 
-    src_node = ox.distance.nearest_nodes(ox_g, src[1], src[0])
-    dst_node = ox.distance.nearest_nodes(ox_g, dst[1], dst[0])
+    src_node = ox.distance.nearest_nodes(ox_g, src[0], src[1])
+    dst_node = ox.distance.nearest_nodes(ox_g, dst[0], dst[1])
 
     shortest_path = ox.distance.shortest_path(
         g, orig=src_node, dest=dst_node, weight='weight')
@@ -191,7 +191,7 @@ def total_time_path(p: Path) -> float:
     return temps
 
 
-def show(g: CityGraph) -> None:
+def show(g: nx.Graph) -> None:
     """Mostra el graf g per pantalla."""
 
     posicions = nx.get_node_attributes(g, 'pos')
