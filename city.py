@@ -1,8 +1,9 @@
 import networkx as nx
-from typing import TypeAlias, Optional
+from typing import TypeAlias
 import osmnx as ox
 import pickle
 import matplotlib.pyplot as plt
+import staticmap
 import os
 from buses import *
 from haversine import haversine, Unit
@@ -14,8 +15,10 @@ Path: TypeAlias = nx.Graph
 
 
 def get_osmnx_graph() -> OsmnxGraph:
-    """Comprova si existeix el graf de Barcelona, si es dona el 
-    cas el càrrega i si no el crea i el guarda"""
+    """
+    Comprova si existeix el graf de Barcelona, si es dona el
+    cas el càrrega i si no el crea i el guarda.
+    """
 
     filename = 'graf_barcelona'
     if os.path.exists(filename):
@@ -32,7 +35,7 @@ def get_osmnx_graph() -> OsmnxGraph:
 
 
 def save_osmnx_graph(g: OsmnxGraph, filename: str) -> None:
-    """Guarda el graf g al fitxer filename"""
+    """Guarda el graf 'g' al fitxer 'filename'."""
 
     # Obtenir el directori actual
     current_dir = os.getcwd()
@@ -44,7 +47,11 @@ def save_osmnx_graph(g: OsmnxGraph, filename: str) -> None:
 
 
 def load_osmnx_graph(filename: str) -> OsmnxGraph:
-    """Retorna el graf guardat al fitxer filename"""
+    """
+    Carrega el graf des del fitxer 'filename' i
+    el retorna com un objecte OsmnxGraph.
+
+    """
 
     # Obtenir el directori actual
     current_dir = os.getcwd()
@@ -63,7 +70,7 @@ def load_osmnx_graph(filename: str) -> OsmnxGraph:
     return graf
 
 
-def distance(n1_coord: tuple[float, float], n2_coord: tuple[float, float]) -> float:
+def distance(n1_coord: Coord, n2_coord: Coord) -> float:
     """Retorna la distància sobre una esfera de dues coordenades en metres."""
 
     return haversine(n1_coord, n2_coord, unit=Unit.METERS)
@@ -72,9 +79,10 @@ def distance(n1_coord: tuple[float, float], n2_coord: tuple[float, float]) -> fl
 def build_city_graph(g1: OsmnxGraph, g2: BusesGraph) -> CityGraph:
     """Retorna un graf fusió de g1 i g2"""
 
-    city_graph = nx.Graph()
-    velocitat_bus = 5
-    velocitat_caminant = 1.9
+    city_graph: CityGraph = nx.Graph()
+    velocitat_bus: float = 5.1
+    velocitat_caminant: float = 1.9
+
     for node_id, data in g1.nodes(data=True):
         city_graph.add_node(node_id, pos=(
             data['x'], data['y']), tipus="Cruilla")
@@ -92,26 +100,42 @@ def build_city_graph(g1: OsmnxGraph, g2: BusesGraph) -> CityGraph:
         llista_pos_lon.append(data['pos'][0])
         llista_pos_lat.append(data['pos'][1])
 
+    # S'obtè una llista amb els id de les cruïlles més properes
+    # a cada una de les Coord que se li passa en la llista paràmetre
     cruilles_properes = ox.distance.nearest_nodes(
         g1, llista_pos_lon, llista_pos_lat, return_dist=False)
 
+    # Es declara un diccionari que consistirà de id de parades
+    # com a claus i id de la cruïlla propera com a valor.
     dict_parada_cruilla_corresponent: dict[int, int] = dict()
 
     for i, id in enumerate(g2.nodes):
         cruilla_propera_corresponent = cruilles_properes[i]
         dict_parada_cruilla_corresponent[id] = cruilla_propera_corresponent
         if id != cruilla_propera_corresponent:
-
             city_graph.add_edge(
                 id, cruilla_propera_corresponent, tipus="Carrer")
 
     for u, v, data in g2.edges(data=True):
         origen = dict_parada_cruilla_corresponent[u]
         desti = dict_parada_cruilla_corresponent[v]
+
+        # Es calcula el camí més curt que es pot fer entre les cruïlles
+        # més properes a dues parades.
         shortest_path = ox.distance.shortest_path(
             g1, orig=origen, dest=desti, weight='weight')
-        pes: float = (distance(g2.nodes[u]['pos'], city_graph.nodes[origen]['pos']) +
-                      distance(g2.nodes[v]['pos'], city_graph.nodes[desti]['pos'])) / velocitat_caminant
+
+        pos_u = g2.nodes[u]['pos']
+        pos_u_cruilla = city_graph.nodes[origen]['pos']
+        pos_v = g2.nodes[v]['pos']
+        pos_v_cruilla = city_graph.nodes[desti]['pos']
+        # Al pes entre els busos s'afegeix la distància a vol d'ocell
+        # entre la parada inicial i final i les seves corresponents
+        # cruïlles tot dividint per la velocitat caminant.
+        pes: float = (distance(pos_u, pos_u_cruilla) +
+                      distance(pos_v, pos_v_cruilla)) / velocitat_caminant
+
+        # Afegir el pes dels carrers per fer el camí.
         for i in range(len(shortest_path)-1):
             id = shortest_path[i]
             next_id = shortest_path[i+1]
@@ -123,17 +147,25 @@ def build_city_graph(g1: OsmnxGraph, g2: BusesGraph) -> CityGraph:
 
 
 def find_path(ox_g: OsmnxGraph, g: CityGraph, src: Coord, dst: Coord) -> Path:
-    """Troba el camí per anar des d'unes coordenades origen fins a unes coordenades destí."""
+    """
+    Troba el camí més curt per anar des d'unes coordenades
+    origen fins a unes coordenades destí.
+
+    """
+
     src_node = ox.distance.nearest_nodes(ox_g, src[1], src[0])
     dst_node = ox.distance.nearest_nodes(ox_g, dst[1], dst[0])
+
     shortest_path = ox.distance.shortest_path(
         g, orig=src_node, dest=dst_node, weight='weight')
+
+    # Crear un graf amb els nodes i les arestes del camí més curt.
     path = nx.Graph()
     for i in range(len(shortest_path)-1):
         id = shortest_path[i]
         pos = (g.nodes[id]['pos'])
-
         path.add_node(id, pos=pos, tipus=g.nodes[id]['tipus'])
+
         next_id = shortest_path[i+1]
         if 'weight' in g[id][next_id]:
             weight = g[id][next_id]['weight']
@@ -150,6 +182,7 @@ def find_path(ox_g: OsmnxGraph, g: CityGraph, src: Coord, dst: Coord) -> Path:
 
 def total_time_path(p: Path) -> float:
     """Retorna el temps total que es triga a recórrer un camí."""
+
     temps = 0
     for u, v, data in p.edges(data=True):
         if 'weight' in data:
@@ -158,22 +191,30 @@ def total_time_path(p: Path) -> float:
     return temps
 
 
-def plot(g: CityGraph, filename: str) -> None:
-    """Desa g com una imatge amb el mapa de la cuitat de fons en l'arxiu filename"""
-   # mostra el camí p en l'arxiu filename
-    path_map = staticmap.StaticMap(3500, 3500)
+def show(g: nx.Graph) -> None:
+    """Mostra el graf g per pantalla."""
+
+    posicions = nx.get_node_attributes(g, 'pos')
+    nx.draw(g, pos=posicions, with_labels=False, font_size=5, node_size=5)
+    plt.show()
+
+
+def plot(g: nx.Graph, filename: str) -> None:
+    """
+    Desa g com una imatge amb el mapa de la
+    ciutat de fons en l'arxiu filename.
+    """
+    # Mostra el camí p en l'arxiu filename
+    map = staticmap.StaticMap(3500, 3500)
 
     # Afegir les parades com a marcadors al mapa
     for node in g.nodes:
         x, y = g.nodes[node]['pos']
-        try:
-            if g.nodes[node]['tipus'] == "Cruilla":
-                path_map.add_marker(
-                    staticmap.CircleMarker((x, y), "black", 15))
-            else:
-                path_map.add_marker(staticmap.CircleMarker((x, y), "blue", 15))
-        except KeyError:
-            print(node, g.nodes[node])
+        if g.nodes[node]['tipus'] == "Cruilla":
+            map.add_marker(
+                staticmap.CircleMarker((x, y), "black", 15))
+        else:
+            map.add_marker(staticmap.CircleMarker((x, y), "blue", 15))
 
     # Afegir els trajectes com a línies al mapa
     for u, v, data in g.edges(data=True):
@@ -185,11 +226,11 @@ def plot(g: CityGraph, filename: str) -> None:
         else:
             line = staticmap.Line(((x1, y1), (x2, y2)), "green", 15)
 
-        path_map.add_line(line)
+        map.add_line(line)
     # Generar el mapa amb les parades i trajectes
-    image = path_map.render()
-    
+    image = map.render()
+
     image.show(filename)
-    
+
     # Desar el mapa com una imatge
     image.save(filename)
