@@ -41,7 +41,8 @@ La funció recorre les línies de bus i les seves parades a les dades JSON. Per 
 A continuació, la funció recorre les línies de bus i les seves parades per crear les arestes del graf. Si les parades d'origen i destí pertanyen a la ciutat de Barcelona, s'extreuen els identificadors de les parades i s'afegeix una aresta al graf amb l'atribut tipus.
 
 Finalment, es retorna el graf de les línies de bus complet.
-Aquest mòdul no conté la funció show i plot que més endavant s'expliquen en el mòdul city, ja que no es diferenciaven de les que ja són en el mòdul city i a l'hora de voler utilitzar-les pel graf de busos es pot utilitzar directament les del mòdul city
+
+Finalment, té les funcions per mostrar el graf de manera interactivament per pantalla o com a fitxer .png.
 
 ### Mòdul city
 El mòdul city és l'encarregat d'obtenir un graf de la ciutat de Barcelona conjuntament amb el graf de les línies de bus, i també de trobar el camí més curt per anar d'unes coordenades a unes altres. A més, conté les funcions per mostrar grafs per pantalla i per crear un fitxer .png del graf.
@@ -51,7 +52,7 @@ Després es crea el graf fusió del graf de la ciutat de Barcelona amb el graf d
 
 També conté la funció per calcular el camí més curt per anar d'un punt a un altre, això servirà per saber quina és la manera més ràpida d'anar fins al cinema al qual es vulgui anar. 
 
-Finalment, té les funcions per mostrar el graf de manera interactivament per pantalla o com a fitxer .png
+Finalment, al igual que el mòdul buses té les funcions per mostrar interactivament el graf, que aquesta funció és igual i per crear el fitxer .png del graf del graf fusionat amb l'única diferència que en aquest cas fa distinció de colors ja que hi ha més d'un tipus de node i aresta.
 
 ### Mòdul demo
 El mòdul demo ensambla el projecte i s'encarrega de mostrar-lo de manera intuitiva i dinàmica. Hem emprat el mòdul rich de python, doncs permet mostrar una terminal amb colors i text de manera estètica. A més, importa els altres codis: city i billboard.
