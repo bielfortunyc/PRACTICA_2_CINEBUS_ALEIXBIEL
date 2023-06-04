@@ -1,12 +1,10 @@
-#NoHeEmpratGithubMai
-
 # CineBus Aleix Albaiges i Gabriel Fortuny.
 
+## Introducció
 Segona pràctica d'Algorísmia i Programació del Grau en Ciència i Enginyeria de Dades del curs 2022-23.
-
-## Instroducció
-
-These instructions will get you a copy of the project up and running on your local machine for development and testing purposes. See deployment for notes on how to deploy the project on a live system.
+Alumnes: Aleix Albaiges Torres i Gabriel Fortuny Carretero.
+Llenguatge dde programació: Python.
+Nom de la pràctica: CineBus.
 
 ### Prerequisits
 
