@@ -4,7 +4,9 @@ import json
 from bs4 import BeautifulSoup
 import requests
 from typing import Any
-
+from rich.console import Console
+from rich.table import Table
+from rich.text import Text
 
 @dataclass
 class Film:
@@ -26,7 +28,7 @@ class Film:
 class Cinema:
     name: str
     address: str
-    coordenades: tuple[float, float]  # Latitud, longitud
+    coordenades: tuple[float, float]  # Longitud, Latitude
 
     def __init__(self, name: str, address: str, coordenades: tuple[float, float]) -> None:
         "Inicialitza la classe Cinema donat el nom, adreça i coordenades, que es treuen d'una llista fixa."
@@ -38,11 +40,11 @@ class Cinema:
 class Projection:
     _film: Film
     _cinema: Cinema
-    _time: tuple[int, int]   # hora:minut
-    # language: str de moment suda perquè no hi és a la info de Sensacine.
-
+    _time: tuple[int, int]   # hora, minut
+    language: str
+    
     def __init__(self, film: Film, cinema: Cinema,
-                 time: tuple[int, int]) -> None:
+                 time: tuple[int, int], language: str = 'Castellà') -> None:
         "Inicialitza la classe Projection donada una pel·licula, cinema i hora."
         self._film, self._cinema, self._time = film, cinema, time
 
@@ -107,12 +109,37 @@ class Billboard:
         matching_mots = [
             element for element in self.projections() if m in element.film().genre]
         return matching_mots
+    def cerca_cinema(self) -> list[Projection]:
+        """Donada la cartellera es retorna la llista de projeccions que es duen a terme al cinema que es demana."""
+        console = Console()
+        console.print("A quin Cinema vols anar? ", end='', style="light_pink3")
+        cine = input()
 
+        sessions: list[Projection] = list()
+        sessions = [x for x in self.projections()
+                    if cine in set(x.cinema().name)]
+        return sessions
+    def cerca_horari(self) -> list[Projection]:
+        """Donada la cartellera es retorna la llista de projeccions a l'hora que es demana."""
+        console = Console()
+        console.print(
+            "A quina Hora vols anar al cine? Escriu l'hora en punt. ", end='', style="light_pink3")
+        try:
+            pel = int(input())
+        except:
+            return list()
+        sessions = [x for x in self.projections() if pel == x.time()[0]]
+        return sessions
+    def cerca_pelicula(self) -> list[Projection]:
+        """Donada la cartellera es retorna la llista de projeccions de la pel·licula que es demana."""
+        console = Console()
+        console.print("Quina Pel·licula vols cercar? ", end='', style="light_pink3")
+        pel = input()
 
-def sort_hora(projections: list[Projection]) -> None:
-    """Ordena la llista de projeccions projections per horari de petit a gran."""
-    sorted(projections, key=lambda x: x.time()[0])
+        sessions: list[Projection] = list()
+        sessions = [x for x in self.projections() if pel in x.film().title]
 
+        return sessions
 
 def read() -> Billboard:
     """Funció principal del programa billboard que llegeix la cartellera del cinemes de Barcelona i la retorna en la classe Billboard."""
