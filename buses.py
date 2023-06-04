@@ -75,13 +75,13 @@ def plot_buses(g: BusesGraph, filename: str) -> None:
     for node in g.nodes:
         x, y = g.nodes[node]['pos']
         map.add_marker(
-            staticmap.CircleMarker((x, y), "black", 15))
+            staticmap.CircleMarker((x, y), "black", 10))
 
     # Afegir els trajectes com a línies al mapa
     for u, v, data in g.edges(data=True):
         x1, y1 = g.nodes[u]['pos']
         x2, y2 = g.nodes[v]['pos']
-        line = staticmap.Line(((x1, y1), (x2, y2)), "red", 15)
+        line = staticmap.Line(((x1, y1), (x2, y2)), "red", 5)
         map.add_line(line)
 
     # Generar el mapa amb les parades i trajectes
