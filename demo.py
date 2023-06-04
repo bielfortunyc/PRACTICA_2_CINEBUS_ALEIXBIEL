@@ -320,7 +320,7 @@ def mostra() -> None:
             clear()
             escriu_cartellera(list(sessions2))
             console.print(
-            "Des de quina adreça de Barcelona vols sortir? És important"
+            "Des de quina adreça de Barcelona vols sortir? És important "
             "que escriguis el tipus de via i el municipi.")
             adreça = input()
             try:
@@ -331,6 +331,7 @@ def mostra() -> None:
                     "fins a", cinemes()[cine].address,
                     style='medium_purple2')
                     lat, lon = coordenades.latitude, coordenades.longitude
+                    print(lat, lon)
                     if not coordenades_barcelona(lat, lon):
                         console.print(
                             "L'adreça que has introduit no es troba dins el",
@@ -390,10 +391,10 @@ def mostra() -> None:
             else:
                 text = Text.assemble(
                     ("Vaja! ", "red"),
-                    "El programa no és capaç de trobar coordenades",
-                    "per la teva",
+                    "El programa no és capaç de trobar coordenades ",
+                    "per la teva ",
                     "adreça. Prova d'escriure-la més extensament, afegint",
-                    "codi postal o ciutat.")
+                    " codi postal o municipi.")
                 console.print(text)
         # crèdits
         elif opcio == '6':
@@ -477,13 +478,13 @@ def escriu_cartellera(projeccions: list[Projection]) -> None:
         taula.add_column("Cinema")
         taula.add_column("Hora")
         for projeccio in projeccions:
+            t = projeccio.time()
             taula.add_row(Text.assemble((projeccio.film().title,
                                          "medium_turquoise")),
             Text.assemble((projeccio.cinema(
             ).name, "aquamarine3")),
-            Text.assemble((f"{projeccio.time()[0]:02d}:",
-                           f"{projeccio.time()[1]:02d}",
-            "sea_green2"), sep=''))
+            Text.assemble((f"{t[0]:02d}:{t[1]:02d}",
+            "sea_green2")))
 
     console.print(taula)
 
