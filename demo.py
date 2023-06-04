@@ -332,7 +332,6 @@ def mostra() -> None:
                                   "fins a", cinemes()[cine].address,
                                   style='medium_purple2')
                     lat, lon = coordenades.latitude, coordenades.longitude
-                    print(lat, lon)
                     if not coordenades_barcelona(lat, lon):
                         console.print(
                             "L'adreça que has introduit no es troba dins el",
@@ -357,7 +356,7 @@ def mostra() -> None:
                             console.print(
                                 f"Arribes a la sessió de les",
                                 F"{hora[0]:02d}:{hora[1]:02d}!",
-                                "Gaudeix de la pel:lícula!",
+                                "Gaudeix de la pel·lícula!",
                                 style="bold chartreuse1")
                         else:
                             console.print(
@@ -375,7 +374,7 @@ def mostra() -> None:
                             console.print(
                                 f"Arribes a la sessió de les",
                                 F"{hora[0]:02d}:{hora[1]:02d}!",
-                                "Gaudeix de la película!",
+                                "Gaudeix de la pel·lícula!",
                                 style="bold chartreuse1")
                         else:
                             console.print(
@@ -384,18 +383,18 @@ def mostra() -> None:
                                 style="deep_pink4")
                     else:
                         console.print("Opció no vàlida", style="purple4")
+                else:
+                    text = Text.assemble(
+                        ("Vaja! ", "red"),
+                        "El programa no és capaç de trobar coordenades ",
+                        "per la teva ",
+                        "adreça. Prova d'escriure-la més extensament, afegint",
+                        " codi postal o municipi.")
+                    console.print(text)
             except Exception:
                 text = Text.assemble(
                     ("Vaja! ", "red"),
                     "Alguna cosa no ha anat bé. Torna a provar-ho.")
-                console.print(text)
-            else:
-                text = Text.assemble(
-                    ("Vaja! ", "red"),
-                    "El programa no és capaç de trobar coordenades ",
-                    "per la teva ",
-                    "adreça. Prova d'escriure-la més extensament, afegint",
-                    " codi postal o municipi.")
                 console.print(text)
         # crèdits
         elif opcio == '6':
@@ -451,18 +450,18 @@ def combina(sessions: list[Projection], y: int,
 def coordenades_barcelona(lat: float, lon: float) -> bool:
     """Limita les coordenades i retorna si es troben dins
     el municipi de Barcelona."""
-    if lat <= 41.27:
-        if lat >= 41.26 and 2.1 <= lon <= 2.12:
+    if lat <= 41.45:
+        if lat >= 41.43 and 2.17 <= lon <= 2.25:
             return True
-        elif lat >= 41.25 and 2.08 <= lon <= 2.13:
+        elif lat >= 41.42 and 2.13 <= lon <= 2.23:
             return True
-        elif lat >= 41.24 and 2.07 <= lon <= 2.13:
+        elif lat >= 41.4 and 2.11 <= lon <= 2.22:
             return True
-        elif lat >= 41.23 and 2.07 <= lon <= 2.12:
+        elif lat >= 41.38 and 2.11 <= lon <= 2.2:
             return True
-        elif lat >= 41.22 and 2.08 <= lon <= 2.11:
+        elif lat >= 41.37 and 2.13 <= lon <= 2.18:
             return True
-        elif lat >= 41.21 and 2.09 <= lon <= 2.10:
+        elif lat >= 41.35 and 2.15 <= lon <= 2.17:
             return True
     return False
 
