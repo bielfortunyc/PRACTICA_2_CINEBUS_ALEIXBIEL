@@ -100,12 +100,12 @@ def build_city_graph(g1: OsmnxGraph, g2: BusesGraph) -> CityGraph:
         llista_pos_lon.append(data['pos'][0])
         llista_pos_lat.append(data['pos'][1])
 
-    # S'obtè una llista amb els id de les cruïlles més properes
+    # Obtenir una llista amb els id de les cruïlles més properes
     # a cada una de les Coord que se li passa en la llista paràmetre
     cruilles_properes = ox.distance.nearest_nodes(
         g1, llista_pos_lon, llista_pos_lat, return_dist=False)
 
-    # Es declara un diccionari que consistirà de id de parades
+    # Declarar un diccionari que consistirà de id de parades
     # com a claus i id de la cruïlla propera com a valor.
     dict_parada_cruilla_corresponent: dict[int, int] = dict()
 
@@ -120,7 +120,7 @@ def build_city_graph(g1: OsmnxGraph, g2: BusesGraph) -> CityGraph:
         origen = dict_parada_cruilla_corresponent[u]
         desti = dict_parada_cruilla_corresponent[v]
 
-        # Es calcula el camí més curt que es pot fer entre les cruïlles
+        # Calcular el camí més curt que es pot fer entre les cruïlles
         # més properes a dues parades.
         shortest_path = ox.distance.shortest_path(
             g1, orig=origen, dest=desti, weight='weight')
@@ -129,7 +129,7 @@ def build_city_graph(g1: OsmnxGraph, g2: BusesGraph) -> CityGraph:
         pos_u_cruilla = city_graph.nodes[origen]['pos']
         pos_v = g2.nodes[v]['pos']
         pos_v_cruilla = city_graph.nodes[desti]['pos']
-        # Al pes entre els busos s'afegeix la distància a vol d'ocell
+        # Al pes entre els busos afegirx la distància a vol d'ocell
         # entre la parada inicial i final i les seves corresponents
         # cruïlles tot dividint per la velocitat caminant.
         pes: float = (distance(pos_u, pos_u_cruilla) +
