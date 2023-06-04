@@ -364,11 +364,16 @@ def mostra() -> None:
                                 "altra pel·lícula o cinema a la cartellera.",
                                 style="deep_pink4")
                     elif s == '2':
-                        console.print("A quina hora vols partir? Escriu només",
-                                      "el nombre de l'hora. ",
+                        console.print("A quina hora vols partir? Escriu hora",
+                                      "i minut separats.",
                                       style='medium_purple2')
-                        actual = input()
-                        arriba = mira_temps(round(t/60), sessions2, actual)
+                        try:
+                            actual = yogi.read(int)
+                            min_actual = yogi.read(int)
+                        except Exception:
+                            console.print("Format d'hora incorrecte.")
+                        arriba = mira_temps(round(t/60), sessions2, actual,
+                                            min_actual)
                         if arriba != -1:
                             hora = sessions2[arriba].time()
                             console.print(
@@ -508,20 +513,23 @@ def escriu_cartellera(projeccions: list[Projection]) -> None:
 
 
 def mira_temps(time: int, sessions: list[Projection],
-               actual: int = None) -> int:
+               actual: int = None, min_actual: int = 0) -> int:
     """Retorna la projeccio a la que s'arriba segons l'hora proporcionada."""
 
     if actual is None:  # Si l'usuari vol sortir en el moment d'execució.
         temps_ara = datetime.now().time()
         actual = round(temps_ara.hour)
+        min_actual = round(temps_ara.minute)
+
     hora = time // 60
     minuts = time % 60
     hora = int(hora)
     minuts = int(minuts)
     actual = int(actual)
-
+    min_actual = int(min_actual)
     temps_donat = datetime(year=2023, month=5, day=26,
-                           hour=hora+actual, minute=minuts, second=0,
+                           hour=hora+actual, minute=minuts+min_actual,
+                           second=0,
                            microsecond=0)
     for proj in range(len(sessions)):
         s = sessions[proj].time()
