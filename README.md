@@ -30,7 +30,25 @@ La funció read() és la principal en aquest codi. S'encarrega de cridar les alt
 Finalment, la funció cinemes() conté un diccionari amb tots els cinemes disponibles de Barcelona, la seva adressa i coordenades. Ho hem fet així per tenir un accés més ràpid, doncs la llista de cinemes no varia en el temps, i per evitar dependre del mòdul geopy, doncs aquest pot donar molts errors quan no troba les adreces. És una manera d'assegurar-se de què el més bàsic del projecte funcionarà correctament.
 
 ### Mòdul buses
+El mòdul buses té com a objectiu crear un graf de les línies de bus a partir d'un fitxer JSON proporcionat per l'Agència de Mobilitat de Barcelona.
+
+La funció get_buses_graph() és responsable de llegir les dades JSON des d'una URL específica, processar-les i construir el graf de les línies de bus. 
+Aquesta funció comença llegint les dades JSON des de l'URL especificada utilitzant la llibreria urllib. Les dades són emmagatzemades en la variable data.
+Tot seguit, es crea una instància buida del graf de línies de bus utilitzant nx.Graph() i s'emmagatzema en la variable graph.
+La funció recorre les línies de bus i les seves parades a les dades JSON. Per a cada parada que pertanyi a la ciutat de Barcelona, s'extreuen les dades rellevants com l'identificador de la parada, les coordenades de longitud i latitud i el seu tipus, i s'afegeix un node al graf amb aquestes dades com atributs.
+A continuació, la funció recorre les línies de bus i les seves parades per crear les arestes del graf. Si les parades d'origen i destí pertanyen a la ciutat de Barcelona, s'extreuen els identificadors de les parades i s'afegeix una aresta al graf amb l'atribut tipus.
+Finalment, es retorna el graf de les línies de bus complet.
+Aquest mòdul no conté la funció show i plot que més endavant s'expliquen en el mòdul city, ja que no es diferenciaven de les que ja són en el mòdul city i a l'hora de voler utilitzar-les pel graf de busos es pot utilitzar directament les del mòdul city
+
 ### Mòdul city
+El mòdul city és l'encarregat d'obtenir un graf de la ciutat de Barcelona conjuntament amb el graf de les línies de bus, i també de trobar el camí més curt per anar d'unes coordenades a unes altres. A més, conté les funcions per mostrar grafs per pantalla i per crear un fitxer .png del graf.
+
+Per obtenir el graf de la ciutat de Barcelona, es fa amb la llibreria osmnx, com aquest procés triga bastant, el primer cop que es carrega el graf es guarda en el directori actual de l'usuari i si es vol tornar a accedir al graf es carrega el graf guardat prèviament.
+Després es crea el graf fusió del graf de la ciutat de Barcelona amb el graf de les línies de bus, en aquest graf cada node tindrà com a atribut el seu identificador, les seves coordenades i el seu tipus, que servirà per diferenciar parades i cruïlles, les arestes tenen l'identificador del seu node origen i l'dentificador del seu node destí, a més del pes de l'aresta que en aquest cas és el temps que es triga a recorre-la i per últim el tipus, per diferenciar entre línies de bus i carrers.
+
+També conté la funció per calcular el camí més curt per anar d'un punt a un altre, això servirà per saber quina és la manera més ràpida d'anar fins al cinema al qual es vulgui anar. 
+
+Finalment, té les funcions per mostrar el graf de manera interactivament per pantalla o com a fitxer .png
 
 ### Mòdul demo
 El mòdul demo ensambla el projecte i s'encarrega de mostrar-lo de manera intuitiva i dinàmica. Hem emprat el mòdul rich de python, doncs permet mostrar una terminal amb colors i text de manera estètica. A més, importa els altres codis: city i billboard.
