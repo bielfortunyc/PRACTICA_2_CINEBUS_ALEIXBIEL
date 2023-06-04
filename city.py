@@ -191,7 +191,7 @@ def total_time_path(p: Path) -> float:
     return temps
 
 
-def show(g: nx.Graph) -> None:
+def show(g: CityGraph) -> None:
     """Mostra el graf g per pantalla."""
 
     posicions = nx.get_node_attributes(g, 'pos')
