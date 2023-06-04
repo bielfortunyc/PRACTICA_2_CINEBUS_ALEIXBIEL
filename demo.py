@@ -5,10 +5,10 @@ from rich.console import Console
 from rich.table import Table
 from rich.text import Text
 from geopy.geocoders import Nominatim
-from datetime import datetime, timedelta
+from datetime import datetime
 
 
-def main() -> None:
+def mostra() -> None:
     console = Console()
     clear()
     console.print("Benvingut!",
@@ -287,7 +287,7 @@ def main() -> None:
                 console.print(
                     "Alguna cosa no ha funcionat com tocava. Torna-ho a",
                     "intentar!")
-        # mostrar el camí per anar a veure una pel·lícula desitjada des d'un
+        # Mostrar el camí per anar a veure una pel·lícula desitjada des d'un
         # lloc donat en un moment donat. De totes les projeccions possibles
         # cal mostrar el
         # camí per arribar a la que comenci abans (i que s'hi pugui
@@ -349,7 +349,7 @@ def main() -> None:
                     plot(cami, "cami_cinema.png")
                     s = input("Vols sortir ara? 1. Sí 2. No ")
                     if s == '1':
-                        arriba = check_time(t//60, sessions2)
+                        arriba = mira_temps(t//60, sessions2)
                         if arriba != -1:
                             hora = sessions2[arriba].time()
                             console.print(
@@ -367,7 +367,7 @@ def main() -> None:
                                       "el nombre de l'hora. ",
                                       style='medium_purple2')
                         actual = input()
-                        arriba = check_time(round(t/60), sessions2, actual)
+                        arriba = mira_temps(round(t/60), sessions2, actual)
                         if arriba != -1:
                             hora = sessions2[arriba].time()
                             console.print(
@@ -488,7 +488,7 @@ def escriu_cartellera(projeccions: list[Projection]) -> None:
     console.print(taula)
 
 
-def check_time(time: int, sessions: list[Projection],
+def mira_temps(time: int, sessions: list[Projection],
     actual: int = None) -> int:
     """Retorna la projeccio a la que s'arriba segons l'hora proporcionada."""
 
@@ -533,10 +533,10 @@ def clear():
 # POSAR # -- ok
 # COLORS --ok
 # README i requirements
-# pep8 -- pycodestyle --show-source --show-pep8 testsuite/E40.py
+# pep8 --ok
 # language -- ok
 # limits coordenades --ok
 
 
 if __name__ == '__main__':
-    main()
+    mostra()
