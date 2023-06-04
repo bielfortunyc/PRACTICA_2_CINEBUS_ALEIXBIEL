@@ -23,8 +23,8 @@ def get_buses_graph() -> BusesGraph:
     # Processar les parades i afegir-les com a
     # nodes amb els seus atributs corresponents
     for i in range(len(data['ObtenirDadesAMBResult']['Linies']['Linia'])):
-        parades = data['ObtenirDadesAMBResult']['Linies']['Linia'][i]
-        ['Parades']['Parada']
+        parades = data['ObtenirDadesAMBResult']['Linies']['Linia'][i][
+            'Parades']['Parada']
 
         for parada in parades:
             if parada['Municipi'] == 'Barcelona':
