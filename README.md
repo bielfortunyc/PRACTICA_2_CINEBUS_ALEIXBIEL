@@ -27,7 +27,7 @@ La classe Billboard és la més important, doncs conté tots els filtres de cerc
 
 La funció read() és la principal en aquest codi. S'encarrega de cridar les altres funcions i fa el paper, d'alguna manera, de main. El web_scraping es realitza a partir de les tres pàgines web de Sensacine de cinemes de Barcelona. Llavors les funcions que comencen per llista s'encarreguen de recórrer el fitxer html de item_resa enviat i amb els mòduls re i json extreure la informació important.
 
-Finalment, la funció cinemes() conté un diccionari amb tots els cinemes disponibles de Barcelona, la seva adressa i coordenades. Ho hem fet així per tenir un accés més ràpid, doncs la llista de cinemes no varia en el temps, i per evitar dependre del mòdul geopy, doncs aquest pot donar molts errors quan no troba les adreces. És una manera d'assegurar-se de què el més bàsic del projecte funcionarà correctament.
+Finalment, la funció cinemes() conté un diccionari amb tots els cinemes disponibles de Barcelona, la seva adreça i coordenades. Ho hem fet així per tenir un accés més ràpid, doncs la llista de cinemes no varia en el temps, i per evitar dependre del mòdul geopy, doncs aquest pot donar molts errors quan no troba les adreces. És una manera d'assegurar-se que el més bàsic del projecte funcionarà correctament.
 
 ### Mòdul buses
 El mòdul buses té com a objectiu crear un graf de les línies de bus a partir d'un fitxer JSON proporcionat per l'Agència de Mobilitat de Barcelona.
