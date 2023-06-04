@@ -57,10 +57,10 @@ def mostra() -> None:
                 sessions = cartellera.cerca_pelicula()
                 if not len(sessions):
                     text = Text.assemble(("Vaja! ", "red"),
-                        ("La pel·lícula que has introduit no es troba",
-                        "a la cartellera. ",
-                        "Assegura't d'escriure una que hi sigui o",
-                        "fixa't en si l'has escrit bé.", "cyan"))
+                                         ("La pel·lícula no es troba",
+                                          "a la cartellera. ",
+                                          "Assegura't que hi sigui o",
+                                          "mira si l'has escrit bé.", "cyan"))
                     console.print(text)
 
                 else:
@@ -81,9 +81,10 @@ def mostra() -> None:
                 sessions = cartellera.cerca_cinema()
                 if not len(sessions):
                     text = Text.assemble(("Vaja! ", "red"), "El cinema que",
-                        "has introduit no es troba a la cartellera. ",
-                        ("Assegura't d'escriure'n un que hi sigui o fixa't",
-                         "en si l'has escrit bé.", "cyan"))
+                                         "no es troba a la cartellera. ",
+                                         ("Assegura't que hi sigui",
+                                          "o mira si l'has escrit bé.",
+                                          "cyan"))
                     console.print(text)
                 else:
                     clear()
@@ -155,8 +156,8 @@ def mostra() -> None:
                         if len(combinacio):
                             hora = combinacio[0].time()
                             console.print("Projeccions a les",
-                            f"{hora[0]:02d}:{hora[1]:02d}",
-                            style="yellow2")
+                                          f"{hora[0]:02d}:{hora[1]:02d}",
+                                          style="yellow2")
                             console.print()
 
                     else:
@@ -165,9 +166,9 @@ def mostra() -> None:
                         escriu_cartellera(combinacio)
                     else:
                         text = Text.assemble(
-                        ("Vaja! ", "red"),
-                        "No hi ha cap combinació amb els paràmetres",
-                        "donats.")
+                            ("Vaja! ", "red"),
+                            "No hi ha cap combinació amb els paràmetres",
+                            "donats.")
                         console.print(text)
                 except Exception:
                     console.print("Opció no vàlida", style="purple4")
@@ -179,12 +180,12 @@ def mostra() -> None:
                 if len(mots):
                     clear()
                     console.print("Pel·icules amb el mot",
-                    mot, style='deep_pink3')
+                                  mot, style='deep_pink3')
                     escriu_cartellera(mots)
                 else:
                     text = Text.assemble(
-                    ("Vaja! ", "red"),
-                    "No hi ha cap pel·lícula o cinema amb el mot escrit.")
+                        ("Vaja! ", "red"),
+                        "No hi ha cap pel·lícula o cinema amb el mot escrit.")
                     console.print(text)
             elif cerca == '6':
                 taula = Table()
@@ -320,16 +321,16 @@ def mostra() -> None:
             clear()
             escriu_cartellera(list(sessions2))
             console.print(
-            "Des de quina adreça de Barcelona vols sortir? És important "
-            "que escriguis el tipus de via i el municipi.")
+                "Des de quina adreça de Barcelona vols sortir? És important "
+                "que escriguis el tipus de via i el municipi.")
             adreça = input()
             try:
                 coordenades: Coord = geolocator.geocode(adreça)
                 if coordenades is not None:
                     clear()
                     console.print("Creant camí des de", adreça,
-                    "fins a", cinemes()[cine].address,
-                    style='medium_purple2')
+                                  "fins a", cinemes()[cine].address,
+                                  style='medium_purple2')
                     lat, lon = coordenades.latitude, coordenades.longitude
                     print(lat, lon)
                     if not coordenades_barcelona(lat, lon):
@@ -341,11 +342,11 @@ def mostra() -> None:
                             "postal o el municipi. Disculpa!")
                         continue
                     cami = find_path(g1, city, (lon, lat),
-                    cinemes()[cine].coordenades)
+                                     cinemes()[cine].coordenades)
                     t = total_time_path(cami)
                     console.print(
-                    F"El temps de durada del recorregut és",
-                    F"de {round(t/60)} minuts")
+                        F"El temps de durada del recorregut és",
+                        F"de {round(t/60)} minuts")
 
                     plot(cami, "cami_cinema.png")
                     s = input("Vols sortir ara? 1. Sí 2. No ")
@@ -354,10 +355,10 @@ def mostra() -> None:
                         if arriba != -1:
                             hora = sessions2[arriba].time()
                             console.print(
-                            f"Arribes a la sessió de les",
-                            F"{hora[0]:02d}:{hora[1]:02d}!",
-                            "Gaudeix de la pel:lícula!",
-                            style="bold chartreuse1")
+                                f"Arribes a la sessió de les",
+                                F"{hora[0]:02d}:{hora[1]:02d}!",
+                                "Gaudeix de la pel:lícula!",
+                                style="bold chartreuse1")
                         else:
                             console.print(
                                 "No arribes a cap sessió a hora! Cerca una",
@@ -385,8 +386,8 @@ def mostra() -> None:
                         console.print("Opció no vàlida", style="purple4")
             except Exception:
                 text = Text.assemble(
-                   ("Vaja! ", "red"),
-                   "Alguna cosa no ha anat bé. Torna a provar-ho.")
+                    ("Vaja! ", "red"),
+                    "Alguna cosa no ha anat bé. Torna a provar-ho.")
                 console.print(text)
             else:
                 text = Text.assemble(
@@ -421,7 +422,7 @@ def combina(sessions: list[Projection], y: int,
     # y agafa els valors: 1 -- Pel·licula, 2 -- Cinema, 3 -- Hora.
     if y == 1:
         console.print("Quina Pel·licula vols cercar? ", end='',
-            style="light_pink3")
+                      style="light_pink3")
         pel = input()
         combinacio = [
             x for x in sessions if x.film().title in pel]
@@ -481,19 +482,19 @@ def escriu_cartellera(projeccions: list[Projection]) -> None:
             t = projeccio.time()
             taula.add_row(Text.assemble((projeccio.film().title,
                                          "medium_turquoise")),
-            Text.assemble((projeccio.cinema(
-            ).name, "aquamarine3")),
-            Text.assemble((f"{t[0]:02d}:{t[1]:02d}",
-            "sea_green2")))
+                          Text.assemble((projeccio.cinema(
+                          ).name, "aquamarine3")),
+                          Text.assemble((f"{t[0]:02d}:{t[1]:02d}",
+                                         "sea_green2")))
 
     console.print(taula)
 
 
 def mira_temps(time: int, sessions: list[Projection],
-    actual: int = None) -> int:
+               actual: int = None) -> int:
     """Retorna la projeccio a la que s'arriba segons l'hora proporcionada."""
 
-    if actual is None:  #   Si l'usuari vol sortir en el moment d'execució.
+    if actual is None:  # Si l'usuari vol sortir en el moment d'execució.
         temps_ara = datetime.now().time()
         actual = round(temps_ara.hour)
     hora = time // 60
@@ -503,8 +504,8 @@ def mira_temps(time: int, sessions: list[Projection],
     actual = int(actual)
 
     temps_donat = datetime(year=2023, month=5, day=26,
-        hour=hora+actual, minute=minuts, second=0,
-        microsecond=0)
+                           hour=hora+actual, minute=minuts, second=0,
+                           microsecond=0)
     for proj in range(len(sessions)):
         s = sessions[proj].time()
         t = temps_donat
@@ -512,7 +513,7 @@ def mira_temps(time: int, sessions: list[Projection],
             return proj
         elif t.hour == s[0] and t.minute <= s[1]:
             return proj
-    return -1   #   En cas que no hi hagi projeccions.
+    return -1    # En cas que no hi hagi projeccions.
 
 
 def sort_hora(projections: list[Projection]) -> None:
@@ -528,15 +529,6 @@ def clear():
         os.system("clear")
     elif os.name == "nt":  # Windows
         os.system("cls")
-
-# PASSAR LES FUNCIONS AL BILLBOARD - ok
-# TREURE MAIN -- ok
-# POSAR # -- ok
-# COLORS --ok
-# README i requirements
-# pep8 --ok
-# language -- ok
-# limits coordenades --ok
 
 
 if __name__ == '__main__':
