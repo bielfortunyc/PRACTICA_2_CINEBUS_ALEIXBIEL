@@ -55,7 +55,7 @@ def get_buses_graph() -> BusesGraph:
     return graph
 
 
-def show(g: BusesGraph) -> None:
+def show_buses(g: BusesGraph) -> None:
     """Mostra el graf g per pantalla."""
 
     posicions = nx.get_node_attributes(g, 'pos')
