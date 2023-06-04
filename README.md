@@ -33,10 +33,13 @@ Finalment, la funció cinemes() conté un diccionari amb tots els cinemes dispon
 El mòdul buses té com a objectiu crear un graf de les línies de bus a partir d'un fitxer JSON proporcionat per l'Agència de Mobilitat de Barcelona.
 
 La funció get_buses_graph() és responsable de llegir les dades JSON des d'una URL específica, processar-les i construir el graf de les línies de bus. 
+
 Aquesta funció comença llegint les dades JSON des de l'URL especificada utilitzant la llibreria urllib. Les dades són emmagatzemades en la variable data.
 Tot seguit, es crea una instància buida del graf de línies de bus utilitzant nx.Graph() i s'emmagatzema en la variable graph.
 La funció recorre les línies de bus i les seves parades a les dades JSON. Per a cada parada que pertanyi a la ciutat de Barcelona, s'extreuen les dades rellevants com l'identificador de la parada, les coordenades de longitud i latitud i el seu tipus, i s'afegeix un node al graf amb aquestes dades com atributs.
+
 A continuació, la funció recorre les línies de bus i les seves parades per crear les arestes del graf. Si les parades d'origen i destí pertanyen a la ciutat de Barcelona, s'extreuen els identificadors de les parades i s'afegeix una aresta al graf amb l'atribut tipus.
+
 Finalment, es retorna el graf de les línies de bus complet.
 Aquest mòdul no conté la funció show i plot que més endavant s'expliquen en el mòdul city, ja que no es diferenciaven de les que ja són en el mòdul city i a l'hora de voler utilitzar-les pel graf de busos es pot utilitzar directament les del mòdul city
 
