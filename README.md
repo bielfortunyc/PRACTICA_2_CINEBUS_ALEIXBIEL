@@ -8,7 +8,11 @@ Nom de la pràctica: CineBus.
 
 ### Prerequisits
 
-Els prerequisits estan escrits i explicats al document requirements.txt. 
+Els prerequisits estan escrits i explicats al document requirements.txt.
+
+Per executar requirements i així tenir instal·lades totes les llibreries necessàries, executar:
+python -m pip install -r requirements.txt
+
 Aquests inclouen les següents llibreries:
 dataclasses, re, json, bs4, requests, typing, networkx, urllib.request, staticmap, os, matplotlib.pyplot, pickle, yogi i rich.
 A més, és necessari una versió de Python que les tingui actualitzades. Mínim Python3.10.
