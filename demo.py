@@ -399,7 +399,25 @@ def mostra() -> None:
         # crèdits
         elif opcio == '6':
             console.print("Aleix Albaiges Torres i Gabriel Fortuny Carretero",
-                          style="sandy brown")
+                          style="sandy_brown")
+            console.print("Tria pel·lícula i ves-hi en bus! Aquest",
+                          "és un projecte de l'assignatura d'Algorísmia i",
+                          "Programació 2 del Grau en Ciència i Enginyeria",
+                          "de Dades de la UPC.",
+                          style="sea_green3")
+            console.print("Es tracta d'un programa",
+                          "dinàmic,",
+                          "en el què pots navegar. Escull i cerca una",
+                          "pel·lícula, mira't",
+                          "quines sessions té i et direm com anar-hi",
+                          "el més ràpid",
+                          "possible.",
+                          style="sea_green3")
+            console.print("Tens moltes maneres de cercar el",
+                          "contingut i es",
+                          "mostren grafs amb mapes sobreimpressionats.",
+                          "Gaudeix!",
+                          style="sea_green3")
         # sortir
         elif opcio == '7':
             break
