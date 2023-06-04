@@ -212,9 +212,9 @@ def plot(g: nx.Graph, filename: str) -> None:
         x, y = g.nodes[node]['pos']
         if g.nodes[node]['tipus'] == "Cruilla":
             map.add_marker(
-                staticmap.CircleMarker((x, y), "black", 15))
+                staticmap.CircleMarker((x, y), "black", 10))
         else:
-            map.add_marker(staticmap.CircleMarker((x, y), "blue", 15))
+            map.add_marker(staticmap.CircleMarker((x, y), "blue", 10))
 
     # Afegir els trajectes com a línies al mapa
     for u, v, data in g.edges(data=True):
@@ -222,9 +222,9 @@ def plot(g: nx.Graph, filename: str) -> None:
         x2, y2 = g.nodes[v]['pos']
 
         if data['tipus'] == "Carrer":
-            line = staticmap.Line(((x1, y1), (x2, y2)), "red", 15)
+            line = staticmap.Line(((x1, y1), (x2, y2)), "red", 5)
         else:
-            line = staticmap.Line(((x1, y1), (x2, y2)), "green", 15)
+            line = staticmap.Line(((x1, y1), (x2, y2)), "green", 5)
 
         map.add_line(line)
     # Generar el mapa amb les parades i trajectes
