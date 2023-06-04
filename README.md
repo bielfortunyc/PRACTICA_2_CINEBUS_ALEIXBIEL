@@ -75,7 +75,8 @@ Finalment, s'ha de comentar que l'opció de mostrar el camí per anar al cine de
 ## Llicència
 
 Els autors del projecte ens reservem tots els drets i l'autoria d'aquest.
-A més, la informació per la cartellera és agafada de la pàgina Sensacine, que és privada. Per això, aquest projecte no pot ser publicat públicament.
+
+A més, la informació per la cartellera és agafada de la pàgina Sensacine, que és privada. Per això, aquest projecte no pot ser fer-se públic.
 
 ## Coneixements adquirits
 
