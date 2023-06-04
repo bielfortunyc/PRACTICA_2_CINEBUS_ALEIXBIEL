@@ -1,18 +1,14 @@
 dataclasses
-re
-json
+--no-binary :all: jsonlib
 bs4
-rquests
+requests
 typing
 rich
-json
 networkx
-urllib.request
+urllib3
 staticmap
 matplotlib
 osmnx
-pickle
-os
 haversine
 yogi
 geopy
