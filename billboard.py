@@ -104,7 +104,8 @@ class Billboard:
             element.film().actors or m in
             element.film().director or m in
             element.film().genre or m in
-            element.cinema().address]
+            element.cinema().address or m in
+            element.cinema().name]
         return matching_mots
 
     def troba_actor(self, m: str) -> list[Projection]:
@@ -145,7 +146,7 @@ class Billboard:
 
         sessions: list[Projection] = list()
         sessions = [x for x in self.projections()
-                    if cine in set(x.cinema().name)]
+                    if cine in x.cinema().name]
         return sessions
 
     def cerca_horari(self) -> list[Projection]:
