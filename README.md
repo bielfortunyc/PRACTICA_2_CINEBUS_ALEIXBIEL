@@ -8,8 +8,7 @@ Nom de la pràctica: CineBus.
 
 ### Prerequisits
 
-Els prerequisits estan escrits i explicats al document requirements.txt.
-
+Les llibreries necessàries per executar el projecte estan escrites al requirements.txt.
 Per executar requirements i així tenir instal·lades totes les llibreries necessàries, executar:
 python -m pip install -r requirements.txt
 
