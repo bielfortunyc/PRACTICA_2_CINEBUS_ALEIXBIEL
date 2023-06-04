@@ -68,11 +68,11 @@ def mostra() -> None:
                     film = sessions[0].film()
                     console.print("Projeccions de", film.title,
                                   style="yellow2")
-                    console.print("Gèneres:", *film.genre,
+                    console.print("Gèneres:", ", ".join(film.genre),
                                   style="yellow2")
-                    console.print("Actors i actrius:", *film.actors,
+                    console.print("Actors i actrius:", ", ".join(film.actors),
                                   style="yellow2")
-                    console.print("Director/s:", *film.director,
+                    console.print("Director/s:", ", ".join(film.director),
                                   style="yellow2")
                     console.print()
                     escriu_cartellera(sessions)
@@ -131,11 +131,13 @@ def mostra() -> None:
                         if len(combinacio):
                             console.print("Projeccions de", film.title,
                                           style="yellow2")
-                            console.print("Gèneres:", *film.genre,
+                            console.print("Gèneres:", ", ".join(film.genre),
                                           style="yellow2")
-                            console.print("Actors i actrius:", *film.actors,
+                            console.print("Actors i actrius:",
+                                          ", ".join(film.actors),
                                           style="yellow2")
-                            console.print("Director/s:", *film.director,
+                            console.print("Director/s:",
+                                          ", ".join(film.director),
                                           style="yellow2")
                             console.print()
 
@@ -257,7 +259,7 @@ def mostra() -> None:
         elif opcio == '3':
             try:
                 console.print("Carregant la imatge del graf de busos...")
-                show(g2)
+                show_buses(g2)
                 clear()
                 console.print(
                     "Vols desar la imatge amb el mapa dels busos en un",
@@ -308,8 +310,8 @@ def mostra() -> None:
             escriu_cartellera(list(sessions))
             console.print("Escriu a quin cinema vols anar.",
                           style='medium_purple2')
-            cine = input()
-            sessions2 = combina(sessions, 2, cine)
+            ci = input()
+            sessions2 = combina(sessions, 2, ci)
             if not len(sessions2):
                 text = Text.assemble(
                     ("Vaja! ", "red"), "No hi ha cap coincidència entre el",
@@ -325,11 +327,11 @@ def mostra() -> None:
                 "que escriguis el tipus de via i el municipi.")
             adreça = input()
             try:
-                coordenades: Coord = geolocator.geocode(adreça)
+                coordenades = geolocator.geocode(adreça)
                 if coordenades is not None:
                     clear()
                     console.print("Creant camí des de", adreça,
-                                  "fins a", cinemes()[cine].address,
+                                  "fins a", cinemes()[ci].address,
                                   style='medium_purple2')
                     lat, lon = coordenades.latitude, coordenades.longitude
                     if not coordenades_barcelona(lat, lon):
@@ -341,7 +343,7 @@ def mostra() -> None:
                             "postal o el municipi. Disculpa!")
                         continue
                     cami = find_path(g1, city, (lon, lat),
-                                     cinemes()[cine].coordenades)
+                                     cinemes()[ci].coordenades)
                     t = total_time_path(cami)
                     console.print(
                         F"El temps de durada del recorregut és",
@@ -350,7 +352,7 @@ def mostra() -> None:
                     plot(cami, "cami_cinema.png")
                     s = input("Vols sortir ara? 1. Sí 2. No ")
                     if s == '1':
-                        arriba = mira_temps(t//60, sessions2)
+                        arriba = mira_temps(round(t/60), sessions2)
                         if arriba != -1:
                             hora = sessions2[arriba].time()
                             console.print(
@@ -461,9 +463,9 @@ def combina(sessions: list[Projection], y: int,
         console.print(
             "A quina Hora vols anar al cine? Escriu l'hora en punt. ",
             end='', style="light_pink3")
-        pel = yogi.read(int)
+        peli = yogi.read(int)
         combinacio = [x for x in sessions if x.time()[
-            0] == pel]
+            0] == peli]
         return combinacio
     else:
         console.print("Opció no vàlida", style="purple4")
