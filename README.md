@@ -8,10 +8,15 @@ Nom de la pràctica: CineBus.
 
 ### Prerequisits
 
-Les llibreries que hem emprat i són necessàries pel correcte funcionament del programa:
+Els prerequisits estan escrits i explicats al document requirements.txt. 
+Aquests inclouen les següents llibreries:
 dataclasses, re, json, bs4, requests, typing, networkx, urllib.request, staticmap, os, matplotlib.pyplot, pickle, yogi i rich.
+A més, és necessari una versió de Python que les tingui actualitzades. Mínim Python3.10.
+També és important tenir espai de memòria a l'ordinador.
 
 ### Mòdul billboard
+
+
 ### Mòdul buses
 ### Mòdul city
 ### Mòdul demo
@@ -21,9 +26,10 @@ dataclasses, re, json, bs4, requests, typing, networkx, urllib.request, staticma
 * **Aleix Albaiges Torres** 
 * **Gabriel Fortuny Carretero** 
 
-## License
+## Llicència
 
-This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details
+Els autors del projecte ens reservem tots els drets i l'autoria d'aquest.
+A més, la informació per la cartellera és agafada de la pàgina Sensacine, que és privada. Per això, aquest projecte no pot ser publicat públicament.
 
 ## Acknowledgments
 
